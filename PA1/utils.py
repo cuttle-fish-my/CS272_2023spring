@@ -23,7 +23,6 @@ def get_args(train: bool = True):
     parser.add_argument('--imagenet_pretrained', type=bool, default=False)
     parser.add_argument('--dataset_name', type=str, default='CIFAR10')
     if train:
-        parser.add_argument('--start_epoch', type=int, default=0)
         parser.add_argument('--batch_size', type=int, default=1)
         parser.add_argument('--epochs', type=int, default=1000)
 
@@ -60,13 +59,16 @@ def create_model(opt):
 
     total_train_loss = []
     total_val_loss = []
-
+    total_train_acc = []
+    total_val_acc = []
     if not pretrained and os.path.exists(opt.load_dir):
         model.load_state_dict(torch.load(os.path.join(opt.load_dir, 'model.pth')))
         total_train_loss = np.load(os.path.join(opt.load_dir, 'train_loss.npy')).tolist()
         total_val_loss = np.load(os.path.join(opt.load_dir, 'val_loss.npy')).tolist()
+        total_train_acc = np.load(os.path.join(opt.load_dir, 'train_acc.npy')).tolist()
+        total_val_acc = np.load(os.path.join(opt.load_dir, 'val_acc.npy')).tolist()
 
-    return model, total_train_loss, total_val_loss
+    return model, total_train_loss, total_val_loss, total_train_acc, total_val_acc
 
 
 def creat_data_loader(opt, train):
@@ -98,18 +100,22 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
         model.eval()
     avg_loss = 0
     device = dev()
+    avg_acc = []
     for data, label in loader:
         # forward
         data, label = data.to(device), label.to(device)
         output = model(data)
+        label_pred = torch.argmax(output.detach().to('cpu'), dim=1)
+        avg_acc.append((label_pred == label.to('cpu')).sum() / data.shape[0])
         loss = loss_function(output, label)
+        avg_loss += loss.detach().to('cpu')
         if train:
             # backward
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        avg_loss += loss.to('cpu')
-    return avg_loss / len(loader)
+        del data, label, output, loss
+    return avg_loss / len(loader), torch.mean(torch.tensor(avg_acc))
 
 
 def dev():
@@ -121,9 +127,11 @@ def dev():
         return torch.device('cpu')
 
 
-def save_model(model, train_loss, val_loss, root_path):
+def save_model(model, train_loss, val_loss, train_acc, val_acc, root_path):
     if not os.path.exists(root_path):
         os.makedirs(root_path)
-        torch.save(model.state_dict(), os.path.join(root_path, 'model.pth'))
-        np.save(os.path.join(root_path, 'train_loss.npy'), train_loss)
-        np.save(os.path.join(root_path, 'val_loss.npy'), val_loss)
+    torch.save(model.state_dict(), os.path.join(root_path, 'model.pth'))
+    np.save(os.path.join(root_path, 'train_loss.npy'), train_loss)
+    np.save(os.path.join(root_path, 'val_loss.npy'), val_loss)
+    np.save(os.path.join(root_path, 'train_acc.npy'), train_acc)
+    np.save(os.path.join(root_path, 'val_acc.npy'), val_acc)

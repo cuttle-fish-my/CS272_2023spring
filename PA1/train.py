@@ -11,41 +11,51 @@ fig = plt.figure(figsize=(20, 15))
 
 
 def train(opt):
-    model, total_train_loss, total_val_loss = utils.create_model(opt)
+    model, total_train_loss, total_val_loss, total_train_acc, total_val_acc = utils.create_model(opt)
     model = model.to(device=dev)
     train_loader, val_loader = utils.creat_data_loader(opt, train=True)
     optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
     best_val_loss = 1e10
 
     save_path = os.path.join(opt.save_dir, opt.exp_name)
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    best_path = os.path.join(save_path, 'best')
-    if not os.path.exists(best_path):
-        os.makedirs(best_path)
 
-    for epoch in range(opt.start_epoch, opt.epochs):
+    for epoch in range(len(total_train_acc), opt.epochs):
 
-        avg_train_loss = utils.run_one_epoch(model, optimizer, train_loader, train=True)
+        avg_train_loss, avg_train_acc = utils.run_one_epoch(model, optimizer, train_loader, train=True)
         total_train_loss.append(avg_train_loss)
+        total_train_acc.append(avg_train_acc)
 
-        avg_val_loss = utils.run_one_epoch(model, optimizer, val_loader, train=False)
+        avg_val_loss, avg_val_acc = utils.run_one_epoch(model, optimizer, val_loader, train=False)
         total_val_loss.append(avg_val_loss)
+        total_val_acc.append(avg_val_acc)
 
-        print("epoch {}: training_loss {:.2f} val_loss {:.2f}".format(epoch, avg_train_loss, avg_val_loss))
+        print("epoch {}: training_loss {:.2f}, val_loss {:.2f}, training_acc {:.2%}, val_acc {:.2%}"
+              .format(epoch, avg_train_loss, avg_val_loss, avg_train_acc, avg_val_acc))
 
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
-            utils.save_model(model, total_train_loss, total_val_loss, os.path.join(save_path, 'best'))
+            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc,
+                             os.path.join(save_path, 'best'))
 
         if epoch % opt.save_interval == 0:
-            utils.save_model(model, total_train_loss, total_val_loss, os.path.join(save_path, f'{epoch}'))
+            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc,
+                             os.path.join(save_path, f'{epoch}'))
 
         plt.clf()
-        plt.plot(total_train_loss, label='training_loss', color='lime')
-        plt.plot(total_val_loss, label='validation_loss', color='magenta')
-        plt.xlabel('epoch')
-        plt.ylabel('loss')
+        ax1 = fig.add_subplot()
+        ax1.plot(total_train_loss, label='training_loss', color='lime')
+        ax1.plot(total_val_loss, label='validation_loss', color='magenta')
+        plt.legend(loc='upper left')
+        ax1.set_xlabel('epoch')
+        ax1.set_xlim([-20, args.epochs + 20])
+        ax1.set_ylabel('Loss')
+
+        ax2 = ax1.twinx()
+        ax2.set_ylabel('accuracy')
+        ax2.plot(total_train_acc, label='training_accuracy')
+        ax2.plot(total_val_acc, label='validation_accuracy')
+        plt.legend()
+
         plt.savefig(os.path.join(save_path, 'loss_curve.png'))
 
 

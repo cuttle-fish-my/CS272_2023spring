@@ -1,1 +1,1 @@
-python train.py --exp_name CIFAR10 --batch_size 64 --save_interval 20 --epochs 100 --lr 0.0001
+python train.py --exp_name CIFAR10 --batch_size 64 --save_interval 5 --epochs 100 --lr 0.0001

@@ -45,15 +45,15 @@ def train(opt):
         ax1 = fig.add_subplot()
         ax1.plot(total_train_loss, label='training_loss', color='lime')
         ax1.plot(total_val_loss, label='validation_loss', color='magenta')
-        plt.legend(loc='upper left')
         ax1.set_xlabel('epoch')
         ax1.set_ylabel('Loss')
+        ax1.legend(loc='upper right')
 
         ax2 = ax1.twinx()
         ax2.set_ylabel('accuracy')
         ax2.plot(total_train_acc, label='training_accuracy')
         ax2.plot(total_val_acc, label='validation_accuracy')
-        plt.legend()
+        ax2.legend(loc='upper left')
 
         plt.savefig(os.path.join(save_path, 'loss_curve.png'))
 

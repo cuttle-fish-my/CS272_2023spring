@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import torch
 import platform
 import argparse
@@ -10,6 +11,7 @@ import torchvision
 from torch.utils.data import DataLoader as DataLoader
 from torchvision.datasets import CIFAR10 as CIFAR10
 from torchvision.models import resnet
+from torch.nn.functional import cross_entropy as cross_entropy
 
 
 def get_args(train: bool = True):
@@ -17,7 +19,7 @@ def get_args(train: bool = True):
 
     parser.add_argument('--exp_name', type=str, default='None')
     parser.add_argument('--model_name', type=str, default='resnet18')
-    parser.add_argument('--model_dir', type=str, default='None')
+    parser.add_argument('--load_dir', type=str, default='None')
     parser.add_argument('--imagenet_pretrained', type=bool, default=False)
     parser.add_argument('--dataset_name', type=str, default='CIFAR10')
     if train:
@@ -29,7 +31,6 @@ def get_args(train: bool = True):
         parser.add_argument('--momentum', type=float, default=0.9)
         parser.add_argument('--weight_decay', type=float, default=0.0001)
 
-        parser.add_argument('--log_interval', type=int, default=10)
         parser.add_argument('--save_interval', type=int, default=100)
         parser.add_argument('--save_dir', type=str, default='models')
 
@@ -57,10 +58,15 @@ def create_model(opt):
         fc_in_features = model.fc.in_features
         model.fc = nn.Linear(fc_in_features, 10)
 
-    if not pretrained and os.path.exists(opt.model_dir):
-        model.load_state_dict(torch.load(opt.model_dir))
+    total_train_loss = []
+    total_val_loss = []
 
-    return model
+    if not pretrained and os.path.exists(opt.load_dir):
+        model.load_state_dict(torch.load(os.path.join(opt.load_dir, 'model.pth')))
+        total_train_loss = np.load(os.path.join(opt.load_dir, 'train_loss.npy')).tolist()
+        total_val_loss = np.load(os.path.join(opt.load_dir, 'val_loss.npy')).tolist()
+
+    return model, total_train_loss, total_val_loss
 
 
 def creat_data_loader(opt, train):
@@ -85,6 +91,27 @@ def creat_data_loader(opt, train):
         pass
 
 
+def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: bool = True):
+    if train:
+        model.train()
+    else:
+        model.eval()
+    avg_loss = 0
+    device = dev()
+    for data, label in loader:
+        # forward
+        data, label = data.to(device), label.to(device)
+        output = model(data)
+        loss = loss_function(output, label)
+        if train:
+            # backward
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        avg_loss += loss.to('cpu')
+    return avg_loss / len(loader)
+
+
 def dev():
     if torch.cuda.is_available():
         return torch.device('cuda')
@@ -92,3 +119,11 @@ def dev():
         return torch.device('mps')
     else:
         return torch.device('cpu')
+
+
+def save_model(model, train_loss, val_loss, root_path):
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
+        torch.save(model.state_dict(), os.path.join(root_path, 'model.pth'))
+        np.save(os.path.join(root_path, 'train_loss.npy'), train_loss)
+        np.save(os.path.join(root_path, 'val_loss.npy'), val_loss)

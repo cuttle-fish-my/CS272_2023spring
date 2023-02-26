@@ -52,8 +52,8 @@ def create_model(opt):
         model = resnet.resnet152(weights=resnet.ResNet152_Weights if pretrained else None)
 
     if opt.dataset_name == 'CIFAR10':
-        conv1_in_channels = model.conv1.in_channels
-        model.conv1 = resnet.conv3x3(3, conv1_in_channels)
+        conv1_out_channels = model.conv1.out_channels
+        model.conv1 = resnet.conv3x3(3, conv1_out_channels)
         fc_in_features = model.fc.in_features
         model.fc = nn.Linear(fc_in_features, 10)
 

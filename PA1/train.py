@@ -47,7 +47,6 @@ def train(opt):
         ax1.plot(total_val_loss, label='validation_loss', color='magenta')
         plt.legend(loc='upper left')
         ax1.set_xlabel('epoch')
-        ax1.set_xlim([-20, args.epochs + 20])
         ax1.set_ylabel('Loss')
 
         ax2 = ax1.twinx()

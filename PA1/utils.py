@@ -3,8 +3,12 @@ import os
 import torch
 import platform
 import argparse
+import torch.utils.data
 
 import torchvision
+
+from torch.utils.data import DataLoader as DataLoader
+from torchvision.datasets import CIFAR10 as CIFAR10
 
 
 def get_args(train: bool = True):
@@ -56,9 +60,36 @@ def create_model(opt):
     return model
 
 
-def creat_dataset(opt, train):
+def creat_data_loader(opt, train):
     if train:
         if opt.train_data == 'CIFAR10':
+            transform = torchvision.transforms.Compose([
+                torchvision.transforms.RandomHorizontalFlip(),
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(
+                    mean=[0.4914, 0.4822, 0.4465],
+                    std=[0.2023, 0.1994, 0.2010])
+            ])
+            dataset = CIFAR10(root='./data/CIFAR10', train=True, download=True, transform=transform)
+            train_dataset, val_dataset = torch.utils.data.random_split(dataset, [45000, 5000])
+            train_loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=True, pin_memory=True)
+            val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=True, pin_memory=True)
+            return train_loader, val_loader
+        else:
+            pass
+    else:
+        if opt.test_data == 'CIFAR10':
+            transform = torchvision.transforms.Compose([
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(
+                    mean=[0.4914, 0.4822, 0.4465],
+                    std=[0.2023, 0.1994, 0.2010])
+            ])
+            test_dataset = CIFAR10(root='./data/CIFAR10', train=False, download=True, transform=transform)
+            test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, pin_memory=True)
+            return test_loader
+        else:
+            pass
 
 
 def dev():

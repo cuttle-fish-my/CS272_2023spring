@@ -51,6 +51,10 @@ def create_model(opt):
     elif model_name == 'resnet152':
         model = resnet.resnet152(weights=resnet.ResNet152_Weights if pretrained else None)
 
+    if pretrained:
+        for param in model.parameters():
+            param.requires_grad = False
+
     if opt.dataset_name == 'CIFAR10':
         conv1_out_channels = model.conv1.out_channels
         model.conv1 = resnet.conv3x3(3, conv1_out_channels)

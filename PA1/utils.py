@@ -61,14 +61,15 @@ def create_model(opt):
     total_val_loss = []
     total_train_acc = []
     total_val_acc = []
+    iteration = 0
     if not pretrained and os.path.exists(opt.load_dir):
         model.load_state_dict(torch.load(os.path.join(opt.load_dir, 'model.pth')))
         total_train_loss = np.load(os.path.join(opt.load_dir, 'train_loss.npy')).tolist()
         total_val_loss = np.load(os.path.join(opt.load_dir, 'val_loss.npy')).tolist()
         total_train_acc = np.load(os.path.join(opt.load_dir, 'train_acc.npy')).tolist()
         total_val_acc = np.load(os.path.join(opt.load_dir, 'val_acc.npy')).tolist()
-
-    return model, total_train_loss, total_val_loss, total_train_acc, total_val_acc
+        iteration = np.load(os.path.join(opt.load_dir, 'iteration.npy')).item()
+    return model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration
 
 
 def creat_data_loader(opt, train):
@@ -136,7 +137,7 @@ def dev():
         return torch.device('cpu')
 
 
-def save_model(model, train_loss, val_loss, train_acc, val_acc, root_path):
+def save_model(model, train_loss, val_loss, train_acc, val_acc, iteration, root_path):
     if not os.path.exists(root_path):
         os.makedirs(root_path)
     torch.save(model.state_dict(), os.path.join(root_path, 'model.pth'))
@@ -144,6 +145,7 @@ def save_model(model, train_loss, val_loss, train_acc, val_acc, root_path):
     np.save(os.path.join(root_path, 'val_loss.npy'), val_loss)
     np.save(os.path.join(root_path, 'train_acc.npy'), train_acc)
     np.save(os.path.join(root_path, 'val_acc.npy'), val_acc)
+    np.save(os.path.join(root_path, 'iteration.npy'), iteration)
 
 
 def CIFAR10_lr_scheduler(iteration: int, optimizer):

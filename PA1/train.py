@@ -11,7 +11,7 @@ fig = plt.figure(figsize=(20, 15))
 
 
 def train(opt):
-    model, total_train_loss, total_val_loss, total_train_acc, total_val_acc = utils.create_model(opt)
+    model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration = utils.create_model(opt)
     model = model.to(device=dev)
     train_loader, val_loader = utils.creat_data_loader(opt, train=True)
     optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
@@ -19,14 +19,13 @@ def train(opt):
 
     save_path = os.path.join(opt.save_dir, opt.exp_name)
 
-    iteration = len(total_train_acc) * int(len(train_loader) / opt.batch_size)
     utils.CIFAR10_lr_scheduler(iteration, optimizer)
 
     for epoch in range(len(total_train_acc), opt.epochs):
 
         avg_train_loss, avg_train_acc, iteration = utils.run_one_epoch(model, optimizer, train_loader, train=True,
-                                                            iteration=iteration,
-                                                            lr_scheduler=utils.CIFAR10_lr_scheduler)
+                                                                       iteration=iteration,
+                                                                       lr_scheduler=utils.CIFAR10_lr_scheduler)
         total_train_loss.append(avg_train_loss)
         total_train_acc.append(avg_train_acc)
 
@@ -41,15 +40,15 @@ def train(opt):
         # save model
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
-            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc,
+            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration,
                              os.path.join(save_path, 'best'))
 
         if epoch % opt.save_interval == 0:
-            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc,
+            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration,
                              os.path.join(save_path, f'{epoch}'))
 
         if utils.CIFAR10_terminate(iteration):
-            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc,
+            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration,
                              os.path.join(save_path, 'last'))
 
         # draw loss curve

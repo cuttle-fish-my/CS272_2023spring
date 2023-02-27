@@ -33,7 +33,7 @@ def train(opt):
         total_val_loss.append(avg_val_loss)
         total_val_acc.append(avg_val_acc)
 
-        print("epoch {}, iter {}: lr={:.2f} training_loss {:.2f}, val_loss {:.2f}, training_acc {:.2%}, val_acc {:.2%}"
+        print("epoch {}, iter {}: lr={:.2f} training_loss {:.3e}, val_loss {:.3e}, training_acc {:.2%}, val_acc {:.2%}"
               .format(epoch, iteration, optimizer.param_groups[0]['lr'], avg_train_loss, avg_val_loss, avg_train_acc,
                       avg_val_acc))
 

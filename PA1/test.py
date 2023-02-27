@@ -11,7 +11,7 @@ def test(opt):
     model = model.to(dev)
     test_loader = utils.creat_data_loader(opt, train=False)
     loss, acc, _ = utils.run_one_epoch(model, optimizer=None, loader=test_loader, train=False)
-    print("test loss = {:.2f}, test accuracy = {.2%}".format(loss, acc))
+    print("test loss = {:.3e}, test accuracy = {.2%}".format(loss, acc))
 
 
 if __name__ == '__main__':

@@ -19,13 +19,18 @@ def train(opt):
 
     save_path = os.path.join(opt.save_dir, opt.exp_name)
 
-    utils.CIFAR10_lr_scheduler(iteration, optimizer)
+    lr_scheduler = utils.creat_lr_scheduler(opt)
+    terminate_function = utils.creat_terminate_function(opt)
+
+    if lr_scheduler is not None:
+        lr_scheduler(iteration, optimizer)
 
     for epoch in range(len(total_train_acc), opt.epochs):
 
         avg_train_loss, avg_train_acc, iteration = utils.run_one_epoch(model, optimizer, train_loader, train=True,
                                                                        iteration=iteration,
-                                                                       lr_scheduler=utils.CIFAR10_lr_scheduler)
+                                                                       lr_scheduler=lr_scheduler,
+                                                                       terminate_function=terminate_function)
         total_train_loss.append(avg_train_loss)
         total_train_acc.append(avg_train_acc)
 

@@ -168,3 +168,25 @@ def CIFAR10_terminate(iteration: int):
         return True
     else:
         return False
+
+
+def creat_lr_scheduler(opt):
+    if opt.dataset_name == 'CIFAR10':
+        if opt.imagenet_pretrained:
+            return None
+        else:
+            return CIFAR10_lr_scheduler
+    else:
+        print("ShanghaiTech_Crowd_Counting_Dataset not implemented yet!")
+        pass
+
+
+def creat_terminate_function(opt):
+    if opt.dataset_name == 'CIFAR10':
+        if opt.imagenet_pretrained:
+            return None
+        else:
+            return CIFAR10_terminate
+    else:
+        print("ShanghaiTech_Crowd_Counting_Dataset not implemented yet!")
+        pass

@@ -24,13 +24,13 @@ def train(opt):
 
     for epoch in range(len(total_train_acc), opt.epochs):
 
-        avg_train_loss, avg_train_acc = utils.run_one_epoch(model, optimizer, train_loader, train=True,
+        avg_train_loss, avg_train_acc, iteration = utils.run_one_epoch(model, optimizer, train_loader, train=True,
                                                             iteration=iteration,
                                                             lr_scheduler=utils.CIFAR10_lr_scheduler)
         total_train_loss.append(avg_train_loss)
         total_train_acc.append(avg_train_acc)
 
-        avg_val_loss, avg_val_acc = utils.run_one_epoch(model, optimizer, val_loader, train=False)
+        avg_val_loss, avg_val_acc, _ = utils.run_one_epoch(model, optimizer, val_loader, train=False)
         total_val_loss.append(avg_val_loss)
         total_val_acc.append(avg_val_acc)
 

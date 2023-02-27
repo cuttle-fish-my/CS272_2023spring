@@ -124,7 +124,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
                     del data, label, output, loss
                     break
         del data, label, output, loss
-    return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc))
+    return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc)), iteration
 
 
 def dev():

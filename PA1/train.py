@@ -34,8 +34,8 @@ def train(opt):
         total_val_loss.append(avg_val_loss)
         total_val_acc.append(avg_val_acc)
 
-        print("epoch {}: training_loss {:.2f}, val_loss {:.2f}, training_acc {:.2%}, val_acc {:.2%}"
-              .format(epoch, avg_train_loss, avg_val_loss, avg_train_acc, avg_val_acc))
+        print("epoch {}: lr={:.2f} training_loss {:.2f}, val_loss {:.2f}, training_acc {:.2%}, val_acc {:.2%}"
+              .format(optimizer.param_groups[0]['lr'], epoch, avg_train_loss, avg_val_loss, avg_train_acc, avg_val_acc))
 
         # save model
         if avg_val_loss < best_val_loss:

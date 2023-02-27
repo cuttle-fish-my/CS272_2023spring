@@ -20,7 +20,7 @@ def get_args(train: bool = True):
     parser.add_argument('--exp_name', type=str, default='None')
     parser.add_argument('--model_name', type=str, default='resnet18')
     parser.add_argument('--load_dir', type=str, default='None')
-    parser.add_argument('--imagenet_pretrained', type=bool, default=False)
+    parser.add_argument('--imagenet_pretrained', action='store_true')
     parser.add_argument('--dataset_name', type=str, default='CIFAR10')
     if train:
         parser.add_argument('--batch_size', type=int, default=1)

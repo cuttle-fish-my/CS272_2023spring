@@ -76,4 +76,5 @@ def train(opt):
 
 if __name__ == "__main__":
     args = utils.get_args(train=True)
+    print(args.imagenet_pretrained)
     train(args)

@@ -7,7 +7,7 @@ dev = utils.dev()
 
 
 def test(opt):
-    model, _ = utils.create_model(opt)
+    model, _, _, _, _, _ = utils.create_model(opt)
     model = model.to(dev)
     test_loader = utils.creat_data_loader(opt, train=False)
     loss, acc, _ = utils.run_one_epoch(model, optimizer=None, loader=test_loader, train=False)

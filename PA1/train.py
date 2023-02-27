@@ -55,6 +55,7 @@ def train(opt):
         if utils.CIFAR10_terminate(iteration):
             utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration,
                              os.path.join(save_path, 'last'))
+            break
 
         # draw loss curve
         plt.clf()

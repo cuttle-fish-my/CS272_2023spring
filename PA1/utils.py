@@ -75,6 +75,7 @@ def creat_data_loader(opt, train):
     if opt.dataset_name == 'CIFAR10':
         transform = []
         if train:
+            transform.append(torchvision.transforms.RandomCrop(32, padding=4))
             transform.append(torchvision.transforms.RandomHorizontalFlip())
         transform.append(torchvision.transforms.ToTensor())
         transform.append(torchvision.transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]))
@@ -93,13 +94,14 @@ def creat_data_loader(opt, train):
         pass
 
 
-def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: bool = True):
+def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: bool = True, iteration: int = 0,
+                  lr_scheduler=None, terminate_function: callable = None):
     if train:
         model.train()
     else:
         model.eval()
-    avg_loss = 0
     device = dev()
+    avg_loss = []
     avg_acc = []
     for data, label in loader:
         # forward
@@ -108,14 +110,21 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
         label_pred = torch.argmax(output.detach().to('cpu'), dim=1)
         avg_acc.append((label_pred == label.to('cpu')).sum() / data.shape[0])
         loss = loss_function(output, label)
-        avg_loss += loss.detach().to('cpu')
+        avg_loss.append(loss.detach().to('cpu'))
         if train:
             # backward
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            iteration += 1
+            if lr_scheduler is not None:
+                lr_scheduler(iteration, optimizer)
+            if terminate_function is not None:
+                if terminate_function(iteration):
+                    del data, label, output, loss
+                    break
         del data, label, output, loss
-    return avg_loss / len(loader), torch.mean(torch.tensor(avg_acc))
+    return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc))
 
 
 def dev():
@@ -135,3 +144,19 @@ def save_model(model, train_loss, val_loss, train_acc, val_acc, root_path):
     np.save(os.path.join(root_path, 'val_loss.npy'), val_loss)
     np.save(os.path.join(root_path, 'train_acc.npy'), train_acc)
     np.save(os.path.join(root_path, 'val_acc.npy'), val_acc)
+
+
+def CIFAR10_lr_scheduler(iteration: int, optimizer):
+    if 32000 <= iteration < 48000:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = 0.01
+    elif iteration >= 48000:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = 0.001
+
+
+def CIFAR10_terminate(iteration: int):
+    if iteration >= 64000:
+        return True
+    else:
+        return False

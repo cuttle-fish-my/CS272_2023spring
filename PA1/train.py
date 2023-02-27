@@ -19,9 +19,14 @@ def train(opt):
 
     save_path = os.path.join(opt.save_dir, opt.exp_name)
 
+    iteration = len(total_train_acc) * int(len(train_loader) / opt.batch_size)
+    utils.CIFAR10_lr_scheduler(iteration, optimizer)
+
     for epoch in range(len(total_train_acc), opt.epochs):
 
-        avg_train_loss, avg_train_acc = utils.run_one_epoch(model, optimizer, train_loader, train=True)
+        avg_train_loss, avg_train_acc = utils.run_one_epoch(model, optimizer, train_loader, train=True,
+                                                            iteration=iteration,
+                                                            lr_scheduler=utils.CIFAR10_lr_scheduler)
         total_train_loss.append(avg_train_loss)
         total_train_acc.append(avg_train_acc)
 
@@ -32,6 +37,7 @@ def train(opt):
         print("epoch {}: training_loss {:.2f}, val_loss {:.2f}, training_acc {:.2%}, val_acc {:.2%}"
               .format(epoch, avg_train_loss, avg_val_loss, avg_train_acc, avg_val_acc))
 
+        # save model
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc,
@@ -41,6 +47,11 @@ def train(opt):
             utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc,
                              os.path.join(save_path, f'{epoch}'))
 
+        if utils.CIFAR10_terminate(iteration):
+            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc,
+                             os.path.join(save_path, 'last'))
+
+        # draw loss curve
         plt.clf()
         ax1 = fig.add_subplot()
         ax1.plot(total_train_loss, label='training_loss', color='lime')

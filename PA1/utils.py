@@ -62,6 +62,7 @@ def create_model(opt):
     total_train_acc = []
     total_val_acc = []
     iteration = 0
+
     if not pretrained and os.path.exists(opt.load_dir):
         model.load_state_dict(torch.load(os.path.join(opt.load_dir, 'model.pth')))
         total_train_loss = np.load(os.path.join(opt.load_dir, 'train_loss.npy')).tolist()
@@ -83,7 +84,8 @@ def creat_data_loader(opt, train):
         transform = torchvision.transforms.Compose(transform)
         dataset = CIFAR10(root='./data/CIFAR10', train=train, download=True, transform=transform)
         if train:
-            train_dataset, val_dataset = torch.utils.data.random_split(dataset, [45000, 5000])
+            train_dataset, val_dataset = torch.utils.data.random_split(dataset, [45000, 5000],
+                                                                       generator=torch.Generator().manual_seed(42))
             train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True, pin_memory=True)
             val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=True, pin_memory=True)
             return train_loader, val_loader

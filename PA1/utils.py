@@ -22,6 +22,7 @@ def get_args(train: bool = True):
     parser.add_argument('--load_dir', type=str, default='None')
     parser.add_argument('--imagenet_pretrained', action='store_true')
     parser.add_argument('--dataset_name', type=str, default='CIFAR10')
+    parser.add_argument('--dataset_dir', type=str, default='data')
     if train:
         parser.add_argument('--batch_size', type=int, default=1)
         parser.add_argument('--epochs', type=int, default=1000)
@@ -89,7 +90,8 @@ def creat_data_loader(opt, train):
         transform.append(torchvision.transforms.ToTensor())
         transform.append(torchvision.transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]))
         transform = torchvision.transforms.Compose(transform)
-        dataset = CIFAR10(root='./data/CIFAR10', train=train, download=True, transform=transform)
+        dataset = CIFAR10(root=os.path.join(opt.dataset_dir, opt.dataset_name), train=train, download=True,
+                          transform=transform)
         if train:
             train_dataset, val_dataset = torch.utils.data.random_split(dataset, [45000, 5000],
                                                                        generator=torch.Generator().manual_seed(42))
@@ -181,6 +183,3 @@ def creat_lr_scheduler(opt):
             return CIFAR10_lr_scheduler
     else:
         print("ShanghaiTech_Crowd_Counting_Dataset not implemented yet!")
-        pass
-
-

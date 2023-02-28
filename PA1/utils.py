@@ -182,7 +182,7 @@ def CIFAR10_FT_lr_scheduler(iteration: int, optimizer):
 
 def creat_lr_scheduler(opt):
     if opt.dataset_name == 'CIFAR10':
-        if opt.imagenet_pretrained:
+        if opt.imagenet_pretrained and opt.freeze:
             return CIFAR10_FT_lr_scheduler
         else:
             return CIFAR10_lr_scheduler

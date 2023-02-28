@@ -21,11 +21,13 @@ def get_args(train: bool = True):
     parser.add_argument('--model_name', type=str, default='resnet18')
     parser.add_argument('--load_dir', type=str, default='None')
     parser.add_argument('--imagenet_pretrained', action='store_true')
-    parser.add_argument('--freeze', action='store_true')
     parser.add_argument('--dataset_name', type=str, default='CIFAR10')
     if train:
         parser.add_argument('--batch_size', type=int, default=1)
         parser.add_argument('--epochs', type=int, default=1000)
+
+        parser.add_argument('--freeze', action='store_true')
+        parser.add_argument('--freeze_epoch', type=int, default=0)
 
         parser.add_argument('--lr', type=float, default=0.001)
         parser.add_argument('--momentum', type=float, default=0.9)
@@ -68,7 +70,7 @@ def create_model(opt):
     total_val_acc = []
     iteration = 0
 
-    if not pretrained and os.path.exists(opt.load_dir):
+    if os.path.exists(opt.load_dir):
         model.load_state_dict(torch.load(os.path.join(opt.load_dir, 'model.pth')))
         total_train_loss = np.load(os.path.join(opt.load_dir, 'train_loss.npy')).tolist()
         total_val_loss = np.load(os.path.join(opt.load_dir, 'val_loss.npy')).tolist()
@@ -103,7 +105,7 @@ def creat_data_loader(opt, train):
 
 
 def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: bool = True, iteration: int = 0,
-                  lr_scheduler=None, terminate_function: callable = None):
+                  lr_scheduler=None):
     if train:
         model.train()
     else:
@@ -127,10 +129,6 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             iteration += 1
             if lr_scheduler is not None:
                 lr_scheduler(iteration, optimizer)
-            if terminate_function is not None:
-                if terminate_function(iteration):
-                    del data, label, output, loss
-                    break
         del data, label, output, loss
     return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc)), iteration
 
@@ -157,22 +155,17 @@ def save_model(model, train_loss, val_loss, train_acc, val_acc, iteration, root_
 
 def CIFAR10_lr_scheduler(iteration: int, optimizer):
     if 32000 <= iteration < 48000:
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = 0.01
+        if optimizer.param_groups[0]['lr'] != 0.01:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = 0.01
     elif iteration >= 48000:
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = 0.001
-
-
-def CIFAR10_terminate(iteration: int):
-    if iteration >= 64000:
-        return True
-    else:
-        return False
+        if optimizer.param_groups[0]['lr'] != 0.001:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = 0.001
 
 
 def CIFAR10_FT_lr_scheduler(iteration: int, optimizer):
-    if 15000 <= iteration < 35000:
+    if 10000 <= iteration < 35000:
         for param_group in optimizer.param_groups:
             param_group['lr'] = 0.001
     elif iteration >= 35000:
@@ -191,12 +184,3 @@ def creat_lr_scheduler(opt):
         pass
 
 
-def creat_terminate_function(opt):
-    if opt.dataset_name == 'CIFAR10':
-        if opt.imagenet_pretrained:
-            return None
-        else:
-            return CIFAR10_terminate
-    else:
-        print("ShanghaiTech_Crowd_Counting_Dataset not implemented yet!")
-        pass

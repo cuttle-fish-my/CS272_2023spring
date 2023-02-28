@@ -20,7 +20,6 @@ def train(opt):
     save_path = os.path.join(opt.save_dir, opt.exp_name)
 
     lr_scheduler = utils.creat_lr_scheduler(opt)
-    terminate_function = utils.creat_terminate_function(opt)
 
     if lr_scheduler is not None:
         lr_scheduler(iteration, optimizer)
@@ -29,10 +28,13 @@ def train(opt):
 
         avg_train_loss, avg_train_acc, iteration = utils.run_one_epoch(model, optimizer, train_loader, train=True,
                                                                        iteration=iteration,
-                                                                       lr_scheduler=lr_scheduler,
-                                                                       terminate_function=terminate_function)
+                                                                       lr_scheduler=lr_scheduler)
         total_train_loss.append(avg_train_loss)
         total_train_acc.append(avg_train_acc)
+
+        if opt.freeze and epoch > opt.freeze_epoch:
+            for param in model.parameters():
+                param.requires_grad = True
 
         avg_val_loss, avg_val_acc, _ = utils.run_one_epoch(model, optimizer, val_loader, train=False)
         total_val_loss.append(avg_val_loss)
@@ -51,11 +53,6 @@ def train(opt):
         if epoch % opt.save_interval == 0:
             utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration,
                              os.path.join(save_path, f'{epoch}'))
-
-        if utils.CIFAR10_terminate(iteration):
-            utils.save_model(model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration,
-                             os.path.join(save_path, 'last'))
-            break
 
         # draw loss curve
         plt.clf()

@@ -21,6 +21,7 @@ def get_args(train: bool = True):
     parser.add_argument('--model_name', type=str, default='resnet18')
     parser.add_argument('--load_dir', type=str, default='None')
     parser.add_argument('--imagenet_pretrained', action='store_true')
+    parser.add_argument('--freeze', action='store_true')
     parser.add_argument('--dataset_name', type=str, default='CIFAR10')
     if train:
         parser.add_argument('--batch_size', type=int, default=1)
@@ -51,9 +52,9 @@ def create_model(opt):
     elif model_name == 'resnet152':
         model = resnet.resnet152(weights=resnet.ResNet152_Weights if pretrained else None)
 
-    # if pretrained:
-    #     for param in model.parameters():
-    #         param.requires_grad = False
+    if opt.freeze:
+        for param in model.parameters():
+            param.requires_grad = False
 
     if opt.dataset_name == 'CIFAR10':
         conv1_out_channels = model.conv1.out_channels

@@ -23,12 +23,11 @@ def get_args(train: bool = True):
     parser.add_argument('--imagenet_pretrained', action='store_true')
     parser.add_argument('--dataset_name', type=str, default='CIFAR10')
     parser.add_argument('--dataset_dir', type=str, default='data')
+    parser.add_argument('--freeze', action='store_true')
+    parser.add_argument('--freeze_epoch', type=int, default=0)
     if train:
         parser.add_argument('--batch_size', type=int, default=1)
         parser.add_argument('--epochs', type=int, default=1000)
-
-        parser.add_argument('--freeze', action='store_true')
-        parser.add_argument('--freeze_epoch', type=int, default=0)
 
         parser.add_argument('--lr', type=float, default=0.001)
         parser.add_argument('--momentum', type=float, default=0.9)

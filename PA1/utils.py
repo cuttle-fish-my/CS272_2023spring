@@ -170,10 +170,19 @@ def CIFAR10_terminate(iteration: int):
         return False
 
 
+def CIFAR10_FT_lr_scheduler(iteration: int, optimizer):
+    if 15000 <= iteration < 35000:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = 0.001
+    elif iteration >= 35000:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = 0.0001
+
+
 def creat_lr_scheduler(opt):
     if opt.dataset_name == 'CIFAR10':
         if opt.imagenet_pretrained:
-            return None
+            return CIFAR10_FT_lr_scheduler
         else:
             return CIFAR10_lr_scheduler
     else:

@@ -165,7 +165,7 @@ def CIFAR10_lr_scheduler(iteration: int, optimizer):
 
 
 def CIFAR10_FT_lr_scheduler(iteration: int, optimizer):
-    if 10000 <= iteration < 35000:
+    if 20000 <= iteration < 35000:
         for param_group in optimizer.param_groups:
             param_group['lr'] = 0.001
     elif iteration >= 35000:

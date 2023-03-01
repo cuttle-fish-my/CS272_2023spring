@@ -119,11 +119,11 @@ def creat_data_loader(opt, train):
         if train:
             train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size],
                                                                        generator=torch.Generator().manual_seed(42))
-            train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True, num_workers=4)
-            val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=False, num_workers=4)
+            train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True, num_workers=2)
+            val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=False, num_workers=2)
             return train_loader, val_loader
         else:
-            test_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4)
+            test_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=2)
             return test_loader
 
 

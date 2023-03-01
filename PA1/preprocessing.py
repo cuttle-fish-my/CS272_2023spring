@@ -6,7 +6,7 @@ import numpy as np
 import scipy.io as sio
 from matplotlib import pyplot as plt
 from sklearn.neighbors import NearestNeighbors
-from pyheatmap.heatmap import HeatMap
+# from pyheatmap.heatmap import HeatMap
 import time
 
 
@@ -74,12 +74,12 @@ def gen_dense_map(data_dir, save_dir, k, beta):
         np.save(os.path.join(save_gt_dir, f"{i + 1}.npy"), density_map)
 
 
-def test():
-    gt = sio.loadmat('data/ShanghaiTech_Crowd_Counting_Dataset/part_B_final/train_data/ground_truth/GT_IMG_1.mat')[
-        'image_info'][0][0][0][0][0]
-    hm = HeatMap(gt.astype(np.int32).tolist(),
-                 base='data/ShanghaiTech_Crowd_Counting_Dataset/part_B_final/train_data/images/IMG_1.jpg')
-    hm.heatmap(save_as="heatmap.png")
+# def test():
+#     gt = sio.loadmat('data/ShanghaiTech_Crowd_Counting_Dataset/part_B_final/train_data/ground_truth/GT_IMG_1.mat')[
+#         'image_info'][0][0][0][0][0]
+#     hm = HeatMap(gt.astype(np.int32).tolist(),
+#                  base='data/ShanghaiTech_Crowd_Counting_Dataset/part_B_final/train_data/images/IMG_1.jpg')
+#     hm.heatmap(save_as="heatmap.png")
 
 
 if __name__ == '__main__':

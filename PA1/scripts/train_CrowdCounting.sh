@@ -1,0 +1,4 @@
+read -p "Enter the index of model to load: " load_index
+
+python ../train.py --exp_name CrowdCounting --model_name CrowdCountingResnet --batch_size 128 --save_interval 5 --epochs 200 --lr 0.1 --load_dir ../models/CrowdCounting/${load_index} --save_dir ../models --dataset_dir ../data
+

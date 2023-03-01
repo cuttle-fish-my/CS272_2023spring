@@ -7,7 +7,22 @@ from matplotlib import pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 
 
-def main(data_dir, save_dir, k, beta):
+def get_mean_std(data_dir):
+    img_dir = os.path.join(data_dir, 'images')
+    num_data = len(os.listdir(img_dir))
+    mean = np.zeros(3)
+    std = np.zeros(3)
+    for i in tqdm(range(num_data)):
+        img_path = os.path.join(img_dir, f"IMG_{i + 1}.jpg")
+        img = cv2.imread(img_path)
+        mean += np.mean(img, axis=(0, 1))
+        std += np.std(img, axis=(0, 1))
+    mean /= num_data
+    std /= num_data
+    print(f"mean = {mean}, std = {std}")
+
+
+def gen_dense_map(data_dir, save_dir, k, beta):
     img_dir = os.path.join(data_dir, 'images')
     gt_dir = os.path.join(data_dir, 'ground_truth')
     save_img_dir = os.path.join(save_dir, 'images')
@@ -47,5 +62,6 @@ def main(data_dir, save_dir, k, beta):
 if __name__ == '__main__':
     train_dir = 'data/ShanghaiTech_Crowd_Counting_Dataset/part_B_final/train_data'
     test_dir = 'data/ShanghaiTech_Crowd_Counting_Dataset/part_B_final/test_data'
-    main(train_dir, 'data/Crowd_Counting/train', 5, 0.3)
-    main(test_dir, 'data/Crowd_Counting/test', 5, 0.3)
+    # gen_dense_map(train_dir, 'data/Crowd_Counting/train', 5, 0.3)
+    # gen_dense_map(test_dir, 'data/Crowd_Counting/test', 5, 0.3)
+    get_mean_std(train_dir)

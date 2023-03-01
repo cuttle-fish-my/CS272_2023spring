@@ -8,10 +8,14 @@ import torch.utils.data
 import torch.nn as nn
 import torchvision
 
+from CrowdCounting import CrowdCountingDataset as CrowdCountingDataset
+from CrowdCounting import CrowdCountingTransform as CrowdCountingTransform
+from CrowdCounting import CrowdCountingLoss as CrowdCountingLoss
 from torch.utils.data import DataLoader as DataLoader
 from torchvision.datasets import CIFAR10 as CIFAR10
 from torchvision.models import resnet
 from torch.nn.functional import cross_entropy as cross_entropy
+from CrowdCountingResnet import CrowdCountingResnet
 
 
 def get_args(train: bool = True):
@@ -53,7 +57,8 @@ def create_model(opt):
         model = resnet.resnet101(weights=resnet.ResNet101_Weights if pretrained else None)
     elif model_name == 'resnet152':
         model = resnet.resnet152(weights=resnet.ResNet152_Weights if pretrained else None)
-
+    elif model_name == 'CrowdCountingResnet':
+        model = CrowdCountingResnet()
     if opt.freeze:
         for param in model.parameters():
             param.requires_grad = False
@@ -81,28 +86,45 @@ def create_model(opt):
 
 
 def creat_data_loader(opt, train):
-    if opt.dataset_name == 'CIFAR10':
+    if opt.dataset_name not in ['CIFAR10', 'Crowd_Counting']:
+        raise ValueError(f'Dataset: {opt.dataset_name} is not supported!')
+    else:
         transform = []
+
+        if opt.dataset_name == 'CIFAR10':
+            if train:
+                transform.append(torchvision.transforms.RandomCrop(32, padding=4))
+                transform.append(torchvision.transforms.RandomHorizontalFlip())
+            transform.append(torchvision.transforms.ToTensor())
+            transform.append(
+                torchvision.transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]))
+            transform = torchvision.transforms.Compose(transform)
+        else:
+            transform = CrowdCountingTransform
+
+        dataset = None
+        train_size, val_size = 0, 0
+
+        if opt.dataset_name == 'CIFAR10':
+            dataset = CIFAR10(root=os.path.join(opt.dataset_dir, opt.dataset_name), train=train, download=True,
+                              transform=transform)
+            train_size = 45000
+            val_size = 5000
+        elif opt.dataset_name == 'Crowd_Counting':
+            dataset = CrowdCountingDataset(root=os.path.join(opt.dataset_dir, opt.dataset_name), train=train,
+                                           transform=transform)
+            train_size = 350
+            val_size = 50
+
         if train:
-            transform.append(torchvision.transforms.RandomCrop(32, padding=4))
-            transform.append(torchvision.transforms.RandomHorizontalFlip())
-        transform.append(torchvision.transforms.ToTensor())
-        transform.append(torchvision.transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]))
-        transform = torchvision.transforms.Compose(transform)
-        dataset = CIFAR10(root=os.path.join(opt.dataset_dir, opt.dataset_name), train=train, download=True,
-                          transform=transform)
-        if train:
-            train_dataset, val_dataset = torch.utils.data.random_split(dataset, [45000, 5000],
+            train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size],
                                                                        generator=torch.Generator().manual_seed(42))
-            train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True, pin_memory=True)
-            val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=True, pin_memory=True)
+            train_loader = DataLoader(train_dataset, batch_size=opt.batch_size, shuffle=True, num_workers=4)
+            val_loader = DataLoader(val_dataset, batch_size=opt.batch_size, shuffle=False, num_workers=4)
             return train_loader, val_loader
         else:
-            test_loader = DataLoader(dataset, batch_size=1, shuffle=False, pin_memory=True)
+            test_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4)
             return test_loader
-    else:
-        print("ShanghaiTech_Crowd_Counting_Dataset not implemented yet!")
-        pass
 
 
 def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: bool = True, iteration: int = 0,
@@ -182,3 +204,10 @@ def creat_lr_scheduler(opt):
             return CIFAR10_lr_scheduler
     else:
         print("ShanghaiTech_Crowd_Counting_Dataset not implemented yet!")
+
+
+def creat_loss_function(opt):
+    if opt.dataset_name == 'CIFAR10':
+        return cross_entropy
+    else:
+        return CrowdCountingLoss

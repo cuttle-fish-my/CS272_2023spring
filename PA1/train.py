@@ -19,6 +19,8 @@ def train(opt):
 
     save_path = os.path.join(opt.save_dir, opt.exp_name)
 
+    loss_function = utils.creat_loss_function(opt)
+
     lr_scheduler = utils.creat_lr_scheduler(opt)
 
     if lr_scheduler is not None:
@@ -26,7 +28,9 @@ def train(opt):
 
     for epoch in range(len(total_train_acc), opt.epochs):
 
-        avg_train_loss, avg_train_acc, iteration = utils.run_one_epoch(model, optimizer, train_loader, train=True,
+        avg_train_loss, avg_train_acc, iteration = utils.run_one_epoch(model, optimizer, train_loader,
+                                                                       loss_function=loss_function,
+                                                                       train=True,
                                                                        iteration=iteration,
                                                                        lr_scheduler=lr_scheduler)
         total_train_loss.append(avg_train_loss)
@@ -74,5 +78,4 @@ def train(opt):
 
 if __name__ == "__main__":
     args = utils.get_args(train=True)
-    print(args.imagenet_pretrained)
     train(args)

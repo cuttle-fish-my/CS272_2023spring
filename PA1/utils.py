@@ -153,7 +153,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             iteration += 1
             if lr_scheduler is not None:
                 lr_scheduler(iteration, optimizer)
-        print(loss)
+        # print(loss)
         del data, label, output, loss
     return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc)), iteration
 

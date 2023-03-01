@@ -40,7 +40,8 @@ def train(opt):
             for param in model.parameters():
                 param.requires_grad = True
 
-        avg_val_loss, avg_val_acc, _ = utils.run_one_epoch(model, optimizer, val_loader, train=False)
+        avg_val_loss, avg_val_acc, _ = utils.run_one_epoch(model, optimizer, val_loader, loss_function=loss_function,
+                                                           train=False)
         total_val_loss.append(avg_val_loss)
         total_val_acc.append(avg_val_acc)
 

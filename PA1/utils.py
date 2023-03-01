@@ -213,3 +213,4 @@ def creat_loss_function(opt):
         return cross_entropy
     else:
         return CrowdCountingLoss
+        # return torch.nn.MSELoss()

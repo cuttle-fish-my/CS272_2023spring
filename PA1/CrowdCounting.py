@@ -36,20 +36,21 @@ class CrowdCountingDataset(Dataset):
 def CrowdCountingTransform(img, gt, train: bool = True):
     mean = [110.0426287, 113.97032411, 115.16945588]
     std = [54.32304769, 55.43994135, 57.3708831]
-    img = torch.Tensor(img)
+    img = torch.Tensor(np.array(img))
     gt = torch.Tensor(gt)
-    img = F.normalize(img, mean=mean, std=std)
     img = img.permute(2, 0, 1)
+    img = F.normalize(img, mean=mean, std=std)
     if train:
         if np.random.random() > 0.5:
             img = F.hflip(img)
             gt = F.hflip(gt)
         if np.random.random() > 0.5:
-            params = T.RandomCrop(gt.shape, padding='reflect').get_params(img, img.shape)
+            params = T.RandomCrop(gt.shape, padding='reflect').get_params(img, gt.shape)
             img = F.crop(img, *params)
             gt = F.crop(gt, *params)
     return img, gt
 
 
 def CrowdCountingLoss(pred, gt):
-    return torch.square(pred - gt).sum() / (2 * pred.shape[0])
+    # return torch.square(pred - gt).sum() / (2 * pred.shape[0])
+    return torch.square(pred - gt).mean()

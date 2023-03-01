@@ -86,7 +86,7 @@ def create_model(opt):
 
 
 def creat_data_loader(opt, train):
-    if opt.dataset_name not in ['CIFAR10', 'Crowd_Counting']:
+    if opt.dataset_name not in ['CIFAR10', 'CrowdCounting']:
         raise ValueError(f'Dataset: {opt.dataset_name} is not supported!')
     else:
         transform = []
@@ -110,7 +110,7 @@ def creat_data_loader(opt, train):
                               transform=transform)
             train_size = 45000
             val_size = 5000
-        elif opt.dataset_name == 'Crowd_Counting':
+        elif opt.dataset_name == 'CrowdCounting':
             dataset = CrowdCountingDataset(root=os.path.join(opt.dataset_dir, opt.dataset_name), train=train,
                                            transform=transform)
             train_size = 350
@@ -140,8 +140,9 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
         # forward
         data, label = data.to(device), label.to(device)
         output = model(data)
-        label_pred = torch.argmax(output.detach().to('cpu'), dim=1)
-        avg_acc.append((label_pred == label.to('cpu')).sum() / data.shape[0])
+        if loss_function == cross_entropy:
+            label_pred = torch.argmax(output.detach().to('cpu'), dim=1)
+            avg_acc.append((label_pred == label.to('cpu')).sum() / data.shape[0])
         loss = loss_function(output, label)
         avg_loss.append(loss.detach().to('cpu'))
         if train:
@@ -152,6 +153,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             iteration += 1
             if lr_scheduler is not None:
                 lr_scheduler(iteration, optimizer)
+        print(loss)
         del data, label, output, loss
     return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc)), iteration
 
@@ -203,7 +205,7 @@ def creat_lr_scheduler(opt):
         else:
             return CIFAR10_lr_scheduler
     else:
-        print("ShanghaiTech_Crowd_Counting_Dataset not implemented yet!")
+        return None
 
 
 def creat_loss_function(opt):

@@ -28,11 +28,10 @@ class UpSamplingBlock(nn.Module):
 class CrowdCountingResnet(resnet.ResNet):
     def __init__(self):
         super().__init__(resnet.BasicBlock, [2, 2, 2, 2])
-        self.layer3 = UpSamplingBlock(in_channels=128, out_channels=256)
-        self.layer4 = UpSamplingBlock(in_channels=256, out_channels=512)
-        self.layer5 = UpSamplingBlock(in_channels=512, out_channels=256)
-        self.layer6 = UpSamplingBlock(in_channels=256, out_channels=64)
-        self.conv1x1 = resnet.conv1x1(in_planes=64, out_planes=1)
+        self.layer3 = UpSamplingBlock(in_channels=128, out_channels=64)
+        self.layer4 = UpSamplingBlock(in_channels=64, out_channels=32)
+        self.layer5 = UpSamplingBlock(in_channels=32, out_channels=16)
+        self.conv1x1 = resnet.conv1x1(in_planes=16, out_planes=1)
 
     def _forward_impl(self, x):
         x = self.conv1(x)
@@ -45,6 +44,5 @@ class CrowdCountingResnet(resnet.ResNet):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.layer5(x)
-        x = self.layer6(x)
         x = self.conv1x1(x)
         return x

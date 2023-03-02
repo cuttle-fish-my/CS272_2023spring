@@ -55,6 +55,7 @@ def gen_dense_map(data_dir, save_dir, k, beta):
         variance = np.square(std)
         D = np.square(X[None] - gt[:, 1, None, None]) + np.square(Y[None] - gt[:, 0, None, None])
         gaussian_kernels = np.exp(-D / (2 * variance)) / (2 * np.pi * variance)
+        gaussian_kernels = gaussian_kernels / np.sum(gaussian_kernels, axis=(1, 2), keepdims=True)
         density_map = gaussian_kernels.sum(axis=0)
         plt.imshow(density_map)
         # plt.show()

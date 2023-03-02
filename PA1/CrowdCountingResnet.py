@@ -46,5 +46,5 @@ class CrowdCountingResnet(resnet.ResNet):
         x = self.layer4(x)
         x = self.layer5(x)
         x = self.conv1x1(x)
-        x = self.sigmoid(x)
+        x = self.relu(x)
         return x

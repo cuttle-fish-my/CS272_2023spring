@@ -52,5 +52,5 @@ def CrowdCountingTransform(img, gt, train: bool = True):
 
 
 def CrowdCountingLoss(pred, gt):
-    return torch.square(pred - gt).sum() / (2 * pred.shape[0])
-    # return torch.square(pred - gt).mean()
+    # return torch.square(pred - gt).sum() / (2 * pred.shape[0])
+    return torch.square(pred - gt).mean()

@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torchvision
 
@@ -7,6 +9,8 @@ dev = utils.dev()
 
 
 def test(opt):
+    if not os.path.exists('results'):
+        os.makedirs('results')
     model, _, _, _, _, _ = utils.create_model(opt)
     model = model.to(dev)
     test_loader = utils.creat_data_loader(opt, train=False)

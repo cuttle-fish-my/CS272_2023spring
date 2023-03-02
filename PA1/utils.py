@@ -7,6 +7,7 @@ import argparse
 import torch.utils.data
 import torch.nn as nn
 import torchvision
+from matplotlib import pyplot as plt
 
 from CrowdCounting import CrowdCountingDataset as CrowdCountingDataset
 from CrowdCounting import CrowdCountingTransform as CrowdCountingTransform
@@ -153,6 +154,9 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             iteration += 1
             if lr_scheduler is not None:
                 lr_scheduler(iteration, optimizer)
+        elif optimizer is None and loss_function != cross_entropy:  # test
+            plt.imsave(os.path.join('result', f"{i + 1}.jpg"), output.detach().to('cpu').numpy(), cmap='jet')
+
         print(f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()}")
         del data, label, output, loss
     return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc)), iteration

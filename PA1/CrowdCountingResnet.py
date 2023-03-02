@@ -28,7 +28,7 @@ class UpSamplingBlock(nn.Module):
 class CrowdCountingResnet(resnet.ResNet):
     def __init__(self):
         super().__init__(resnet.BasicBlock, [2, 2, 2, 2])
-        weight = resnet.ResNet18_Weights
+        weight = resnet.ResNet18_Weights.IMAGENET1K_V1
         self.load_state_dict(weight.get_state_dict(progress=True))
         self.layer3 = UpSamplingBlock(in_channels=128, out_channels=64)
         self.layer4 = UpSamplingBlock(in_channels=64, out_channels=32)

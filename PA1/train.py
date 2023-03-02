@@ -45,10 +45,16 @@ def train(opt):
         total_val_loss.append(avg_val_loss)
         total_val_acc.append(avg_val_acc)
 
-        print("epoch {}, iter {}: lr={:.3e} training_loss {:.3e}, val_loss {:.3e}, training_acc {:.2%}, val_acc {:.2%}"
-              .format(epoch, iteration, optimizer.param_groups[0]['lr'], avg_train_loss, avg_val_loss, avg_train_acc,
-                      avg_val_acc))
-
+        if opt.dataset_name == 'CIFAR10':
+            print(
+                "epoch {}, iter {}: lr={:.3e} training_loss {:.3e},\
+                 val_loss {:.3e}, training_acc {:.2%}, val_acc {:.2%}".format(
+                    epoch, iteration, optimizer.param_groups[0]['lr'], avg_train_loss, avg_val_loss, avg_train_acc,
+                    avg_val_acc))
+        else:
+            print("epoch {}: lr={:.3e} training_loss {:.3e}, val_loss {:.3e}".format(epoch,
+                                                                                     optimizer.param_groups[0]['lr'],
+                                                                                     avg_train_loss, avg_val_loss))
         # save model
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
@@ -68,11 +74,12 @@ def train(opt):
         ax1.set_ylabel('Loss')
         ax1.legend(loc='upper right')
 
-        ax2 = ax1.twinx()
-        ax2.set_ylabel('accuracy')
-        ax2.plot(total_train_acc, label='training_accuracy')
-        ax2.plot(total_val_acc, label='validation_accuracy')
-        ax2.legend(loc='upper left')
+        if opt.dataset_name == 'CIFAR10':
+            ax2 = ax1.twinx()
+            ax2.set_ylabel('accuracy')
+            ax2.plot(total_train_acc, label='training_accuracy')
+            ax2.plot(total_val_acc, label='validation_accuracy')
+            ax2.legend(loc='upper left')
 
         plt.savefig(os.path.join(save_path, 'loss_curve.png'))
 

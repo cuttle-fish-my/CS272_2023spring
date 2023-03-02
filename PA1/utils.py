@@ -136,7 +136,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
     device = dev()
     avg_loss = []
     avg_acc = []
-    for data, label in loader:
+    for i, (data, label) in enumerate(loader):
         # forward
         data, label = data.to(device), label.to(device)
         output = model(data)
@@ -153,7 +153,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             iteration += 1
             if lr_scheduler is not None:
                 lr_scheduler(iteration, optimizer)
-        print(loss)
+        print(f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()}")
         del data, label, output, loss
     return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc)), iteration
 

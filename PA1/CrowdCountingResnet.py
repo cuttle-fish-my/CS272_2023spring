@@ -11,18 +11,17 @@ class UpSamplingBlock(nn.Module):
         self.bn = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         identity = self.upsample(x)
         out = self.conv1(identity)
         out = self.bn(out)
-        out = self.sigmoid(out)
+        out = self.relu(out)
         out = self.conv2(out)
         out = self.bn(out)
         # identity = self.conv1x1(identity)
         # out += identity
-        out = self.sigmoid(out)
+        out = self.relu(out)
         return out
 
 
@@ -40,7 +39,7 @@ class CrowdCountingResnet(resnet.ResNet):
     def _forward_impl(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
-        x = self.sigmoid(x)
+        x = self.relu(x)
         x = self.maxpool(x)
 
         x = self.layer1(x)

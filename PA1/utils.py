@@ -78,11 +78,16 @@ def create_model(opt):
 
     if os.path.exists(opt.load_dir):
         model.load_state_dict(torch.load(os.path.join(opt.load_dir, 'model.pth')))
-        total_train_loss = np.load(os.path.join(opt.load_dir, 'train_loss.npy')).tolist()
-        total_val_loss = np.load(os.path.join(opt.load_dir, 'val_loss.npy')).tolist()
-        total_train_acc = np.load(os.path.join(opt.load_dir, 'train_acc.npy')).tolist()
-        total_val_acc = np.load(os.path.join(opt.load_dir, 'val_acc.npy')).tolist()
-        iteration = np.load(os.path.join(opt.load_dir, 'iteration.npy')).item()
+        if os.path.exists(os.path.join(opt.load_dir, 'train_loss.npy')):
+            total_train_loss = np.load(os.path.join(opt.load_dir, 'train_loss.npy')).tolist()
+        if os.path.exists(os.path.join(opt.load_dir, 'val_loss.npy')):
+            total_val_loss = np.load(os.path.join(opt.load_dir, 'val_loss.npy')).tolist()
+        if os.path.exists(os.path.join(opt.load_dir, 'train_acc.npy')):
+            total_train_acc = np.load(os.path.join(opt.load_dir, 'train_acc.npy')).tolist()
+        if os.path.exists(os.path.join(opt.load_dir, 'val_acc.npy')):
+            total_val_acc = np.load(os.path.join(opt.load_dir, 'val_acc.npy')).tolist()
+        if os.path.exists(os.path.join(opt.load_dir, 'iteration.npy')):
+            iteration = np.load(os.path.join(opt.load_dir, 'iteration.npy')).item()
     return model, total_train_loss, total_val_loss, total_train_acc, total_val_acc, iteration
 
 

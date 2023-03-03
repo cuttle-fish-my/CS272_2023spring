@@ -137,6 +137,8 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
     device = dev()
     avg_loss = []
     avg_acc = []
+    avg_MSE = []
+    avg_MAE = []
     for i, (data, label) in enumerate(loader):
         # forward
         data, label = data.to(device), label.to(device)
@@ -155,12 +157,20 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             if lr_scheduler is not None:
                 lr_scheduler(iteration, optimizer)
         elif optimizer is None and loss_function != cross_entropy:  # test
+            z_pred = output.sum(axis=(2, 3)).detach().to('cpu').squeeze()
+            z_label = label.sum(axis=(1, 2)).detach().to('cpu').squeeze()
+
+            avg_MSE.append((z_pred - z_label) ** 2)
+            avg_MAE.append(torch.abs(z_pred - z_label))
 
             plt.imshow(output.detach().to('cpu').numpy().squeeze())
             plt.imsave(os.path.join('results', f"{i + 1}.jpg"), output.detach().to('cpu').numpy().squeeze(), cmap='jet')
 
         print(f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()}")
+
         del data, label, output, loss
+    if optimizer is None and loss_function != cross_entropy:
+        print(f"MAE = {torch.mean(torch.tensor(avg_MAE))}, MSE = {torch.sqrt(torch.mean(torch.tensor(avg_MSE)))}")
     return torch.mean(torch.tensor(avg_loss)), torch.mean(torch.tensor(avg_acc)), iteration
 
 

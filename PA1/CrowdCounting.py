@@ -52,7 +52,7 @@ def CrowdCountingTransform(img, gt, train: bool = True):
 
 
 def CrowdCountingLoss(pred, gt):
-    return torch.square(pred - gt[:, None, :, :]).sum() / (2 * pred.shape[0])
+    # return torch.square(pred - gt[:, None, :, :]).sum() / (2 * pred.shape[0])
 
     # z_pred = pred[:, 0, :, :].sum(axis=(1, 2))
     # z_label = gt.sum(axis=(1, 2))
@@ -60,4 +60,4 @@ def CrowdCountingLoss(pred, gt):
     # MAE = torch.mean(torch.abs(z_pred - z_label))
     # return MSE + MAE
     # return torch.square(pred - gt[:, None, :, :]).mean()
-    # return torch.nn.BCELoss()(pred, gt[:, None, :, :]) + torch.square(pred - gt[:, None, :, :]).mean()
+    return torch.nn.BCELoss()(pred, gt[:, None, :, :]) + torch.square(pred - gt[:, None, :, :]).mean()

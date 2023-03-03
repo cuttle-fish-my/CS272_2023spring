@@ -225,12 +225,12 @@ def CIFAR10_FT_lr_scheduler(iteration: int, optimizer):
 
 
 def CrowdCounting_lr_scheduler(iteration: int, optimizer):
-    if 800 <= iteration < 3000:
+    if 3000 <= iteration < 6000:
         for param_group in optimizer.param_groups:
-            param_group['lr'] = 1e-8
-    elif iteration >= 3000:
+            param_group['lr'] = 1e-4
+    elif iteration >= 6000:
         for param_group in optimizer.param_groups:
-            param_group['lr'] = 1e-9
+            param_group['lr'] = 1e-5
 
 
 def creat_lr_scheduler(opt):
@@ -240,7 +240,7 @@ def creat_lr_scheduler(opt):
         else:
             return CIFAR10_lr_scheduler
     else:
-        return None
+        return CrowdCounting_lr_scheduler
 
 
 def creat_loss_function(opt):

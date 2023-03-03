@@ -240,7 +240,7 @@ def creat_lr_scheduler(opt):
         else:
             return CIFAR10_lr_scheduler
     else:
-        return CrowdCounting_lr_scheduler
+        return None
 
 
 def creat_loss_function(opt):

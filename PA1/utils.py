@@ -143,11 +143,24 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
         # forward
         data, label = data.to(device), label.to(device)
         output = model(data)
+        loss = loss_function(output, label)
+        avg_loss.append(loss.detach().to('cpu'))
+
         if loss_function == cross_entropy:
             label_pred = torch.argmax(output.detach().to('cpu'), dim=1)
             avg_acc.append((label_pred == label.to('cpu')).sum() / data.shape[0])
-        loss = loss_function(output, label)
-        avg_loss.append(loss.detach().to('cpu'))
+            print(f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()}")
+        else:
+            z_pred = output.squeeze().sum(axis=(1, 2)).detach().to('cpu')
+            z_label = label.sum(axis=(1, 2)).detach().to('cpu')
+            MSE = torch.sqrt(torch.mean((z_pred - z_label) ** 2))
+            MAE = torch.mean(torch.abs(z_pred - z_label))
+            avg_MSE.append((z_pred - z_label) ** 2)
+            avg_MAE.append(torch.abs(z_pred - z_label))
+            print(
+                f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()},\
+                 MSE = {MSE.detach().to('cpu').numpy().item()}, MAE = {MAE.detach().to('cpu').numpy().item()}")
+
         if train:
             # backward
             optimizer.zero_grad()
@@ -157,16 +170,8 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             if lr_scheduler is not None:
                 lr_scheduler(iteration, optimizer)
         elif optimizer is None and loss_function != cross_entropy:  # test
-            z_pred = output.sum(axis=(2, 3)).detach().to('cpu').squeeze()
-            z_label = label.sum(axis=(1, 2)).detach().to('cpu').squeeze()
-
-            avg_MSE.append((z_pred - z_label) ** 2)
-            avg_MAE.append(torch.abs(z_pred - z_label))
-
             plt.imshow(output.detach().to('cpu').numpy().squeeze())
             plt.imsave(os.path.join('results', f"{i + 1}.jpg"), output.detach().to('cpu').numpy().squeeze(), cmap='jet')
-
-        print(f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()}")
 
         del data, label, output, loss
     if optimizer is None and loss_function != cross_entropy:

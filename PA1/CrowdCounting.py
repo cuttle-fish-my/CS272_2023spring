@@ -60,4 +60,4 @@ def CrowdCountingLoss(pred, gt):
     MAE = torch.mean(torch.abs(z_pred - z_label))
     # return MSE + MAE
     # return torch.square(pred - gt[:, None, :, :]).mean()
-    return torch.nn.BCELoss()(pred, gt[:, None, :, :]) + MAE
+    return torch.nn.BCELoss()(pred, gt[:, None, :, :]) + MSE * 0.01

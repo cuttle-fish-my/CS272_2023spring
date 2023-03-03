@@ -19,8 +19,8 @@ class UpSamplingBlock(nn.Module):
         out = self.relu(out)
         out = self.conv2(out)
         out = self.bn(out)
-        identity = self.conv1x1(identity)
-        out += identity
+        # identity = self.conv1x1(identity)
+        # out += identity
         out = self.relu(out)
         return out
 

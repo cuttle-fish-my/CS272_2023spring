@@ -52,13 +52,13 @@ def CrowdCountingTransform(img, gt, train: bool = True):
 
 
 def CrowdCountingLoss(pred, gt):
-    return 1e-3 * torch.square(pred - gt[:, None, :, :]).sum() / (2 * pred.shape[0])
+    # return 1e-3 * torch.square(pred - gt[:, None, :, :]).sum() / (2 * pred.shape[0])
 
-    # z_pred = pred[:, 0, :, :].sum(axis=(1, 2))
-    # z_label = gt.sum(axis=(1, 2))
-    # MSE = torch.sqrt(torch.mean((z_pred - z_label) ** 2))
+    z_pred = pred[:, 0, :, :].sum(axis=(1, 2))
+    z_label = gt.sum(axis=(1, 2))
+    MSE = torch.sqrt(torch.mean((z_pred - z_label) ** 2))
     # MAE = torch.mean(torch.abs(z_pred - z_label))
-    # return 1e-3 * (MSE + MAE + torch.square(pred - gt[:, None, :, :]).sum() / (2 * pred.shape[0]))
+    return 1e-3 * MSE
 
     # return torch.square(pred - gt[:, None, :, :]).mean()
     # return torch.nn.BCELoss()(pred, gt[:, None, :, :]) + torch.square(pred - gt[:, None, :, :]).mean()

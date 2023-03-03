@@ -219,6 +219,15 @@ def CIFAR10_FT_lr_scheduler(iteration: int, optimizer):
             param_group['lr'] = 0.0001
 
 
+def CrowdCounting_lr_scheduler(iteration: int, optimizer):
+    if 800 <= iteration < 3000:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = 5e-6
+    elif iteration >= 3000:
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = 5e-7
+
+
 def creat_lr_scheduler(opt):
     if opt.dataset_name == 'CIFAR10':
         if opt.imagenet_pretrained and opt.freeze:

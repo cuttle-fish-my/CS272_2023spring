@@ -151,7 +151,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
         if loss_function == cross_entropy:
             loss = loss_function(output, label)
         else:
-            loss = loss_function(output, label * 100)
+            loss = loss_function(output, label[:, 0, :, :] * 100)
         avg_loss.append(loss.detach().to('cpu'))
 
         if loss_function == cross_entropy:

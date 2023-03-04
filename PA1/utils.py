@@ -250,5 +250,5 @@ def creat_loss_function(opt):
     if opt.dataset_name == 'CIFAR10':
         return cross_entropy
     else:
-        # return CrowdCountingLoss
-        return torch.nn.MSELoss()
+        return CrowdCountingLoss
+        # return torch.nn.MSELoss()

@@ -56,6 +56,7 @@ def CrowdCountingLoss(pred, gt):
     z_label = gt.sum(axis=(1, 2))
     MSE = torch.sqrt(torch.mean((z_pred - z_label) ** 2))
     MAE = torch.mean(torch.abs(z_pred - z_label))
+    print(MSE, MAE)
     return torch.square(pred - gt[:, None, :, :]).sum() / (2 * pred.shape[0]) + 1e-4 * MSE
     # return MSE + MAE
     # return torch.square(pred - gt[:, None, :, :]).mean()

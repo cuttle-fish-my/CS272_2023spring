@@ -18,7 +18,7 @@ from torchvision.models import resnet
 from torch.nn.functional import cross_entropy as cross_entropy
 from CrowdCountingResnet import CrowdCountingResnet
 
-dilation = 10
+dilation = 100
 
 
 def get_args(train: bool = True):

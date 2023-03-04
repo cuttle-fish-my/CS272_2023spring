@@ -157,7 +157,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             print(f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()}")
         else:
             z_pred = output[:, 0, :, :].sum(axis=(1, 2)).detach().to('cpu')
-            z_label = label.sum(axis=(1, 2)).detach().to('cpu')
+            z_label = (label * 1000).sum(axis=(1, 2)).detach().to('cpu')
             MSE = torch.sqrt(torch.mean((z_pred - z_label) ** 2))
             MAE = torch.mean(torch.abs(z_pred - z_label))
             avg_MSE.append((z_pred - z_label) ** 2)

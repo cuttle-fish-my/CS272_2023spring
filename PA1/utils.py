@@ -178,7 +178,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             if lr_scheduler is not None:
                 lr_scheduler(iteration, optimizer)
         elif optimizer is None and loss_function != cross_entropy:  # test
-            plt.imshow(output.detach().to('cpu').numpy().squeeze())
+            plt.imshow((output / 100).detach().to('cpu').numpy().squeeze())
             plt.imsave(os.path.join('results', f"{i + 1}.jpg"), output.detach().to('cpu').numpy().squeeze(), cmap='jet')
 
         del data, label, output, loss

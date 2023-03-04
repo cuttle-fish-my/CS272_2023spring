@@ -148,7 +148,10 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
         # forward
         data, label = data.to(device), label.to(device)
         output = model(data)
-        loss = loss_function(output, label)
+        if loss_function == cross_entropy:
+            loss = loss_function(output, label)
+        else:
+            loss = loss_function(output, label * 100)
         avg_loss.append(loss.detach().to('cpu'))
 
         if loss_function == cross_entropy:
@@ -156,8 +159,8 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             avg_acc.append((label_pred == label.to('cpu')).sum() / data.shape[0])
             print(f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()}")
         else:
-            z_pred = output[:, 0, :, :].sum(axis=(1, 2)).detach().to('cpu')
-            z_label = (label * 1000).sum(axis=(1, 2)).detach().to('cpu')
+            z_pred = (output[:, 0, :, :] / 100).sum(axis=(1, 2)).detach().to('cpu')
+            z_label = label.sum(axis=(1, 2)).detach().to('cpu')
             MSE = torch.sqrt(torch.mean((z_pred - z_label) ** 2))
             MAE = torch.mean(torch.abs(z_pred - z_label))
             avg_MSE.append((z_pred - z_label) ** 2)
@@ -247,5 +250,5 @@ def creat_loss_function(opt):
     if opt.dataset_name == 'CIFAR10':
         return cross_entropy
     else:
-        return CrowdCountingLoss
-        # return torch.nn.MSELoss()
+        # return CrowdCountingLoss
+        return torch.nn.MSELoss()

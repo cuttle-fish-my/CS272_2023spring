@@ -52,8 +52,8 @@ def CrowdCountingTransform(img, gt, train: bool = True):
 
 
 def CrowdCountingLoss(pred, gt):
-    return torch.square(pred - gt[:, None, :, :]).sum() / (2 * pred.shape[0])
-    # dilated_gt = gt * 1000
+    dilated_gt = gt * 1000
+    return torch.square(pred - dilated_gt[:, None, :, :]).sum() / (2 * pred.shape[0])
     # z_pred = pred[:, 0, :, :].sum(axis=(1, 2))
     # z_label = dilated_gt.sum(axis=(1, 2))
     # MSE = torch.sqrt(torch.mean((z_pred - z_label) ** 2))

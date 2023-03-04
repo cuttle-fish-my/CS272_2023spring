@@ -18,6 +18,8 @@ from torchvision.models import resnet
 from torch.nn.functional import cross_entropy as cross_entropy
 from CrowdCountingResnet import CrowdCountingResnet
 
+dilation = 10
+
 
 def get_args(train: bool = True):
     parser = argparse.ArgumentParser()
@@ -151,7 +153,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
         if loss_function == cross_entropy:
             loss = loss_function(output, label)
         else:
-            loss = loss_function(output[:, 0, :, :], label * 100)
+            loss = loss_function(output[:, 0, :, :], label * dilation)
         avg_loss.append(loss.detach().to('cpu'))
 
         if loss_function == cross_entropy:
@@ -159,7 +161,7 @@ def run_one_epoch(model, optimizer, loader, loss_function=cross_entropy, train: 
             avg_acc.append((label_pred == label.to('cpu')).sum() / data.shape[0])
             print(f"batch {i}: loss = {loss.detach().to('cpu').numpy().item()}")
         else:
-            z_pred = (output[:, 0, :, :] / 100).sum(axis=(1, 2)).detach().to('cpu')
+            z_pred = (output[:, 0, :, :] / dilation).sum(axis=(1, 2)).detach().to('cpu')
             z_label = label.sum(axis=(1, 2)).detach().to('cpu')
             MSE = torch.sqrt(torch.mean((z_pred - z_label) ** 2))
             MAE = torch.mean(torch.abs(z_pred - z_label))

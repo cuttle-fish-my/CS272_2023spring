@@ -4,3 +4,9 @@
 *.pth
 *.npy
 *.png
+*.aux
+*.log
+*.out
+__pycache__
+.DS_Store
+*.gz

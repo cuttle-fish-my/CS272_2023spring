@@ -7,6 +7,12 @@
 *.aux
 *.log
 *.out
+*.bbl
+*.blg
+*.brf
+
 __pycache__
 .DS_Store
 *.gz
+
+/PA2/RepCount_pose

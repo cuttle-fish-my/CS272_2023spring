@@ -1,0 +1,27 @@
+\begin{thebibliography}{1}\itemsep=-1pt
+
+\bibitem{gao2019c}
+Junyu Gao, Wei Lin, Bin Zhao, Dong Wang, Chenyu Gao, and Jun Wen.
+\newblock C$^3$ framework: An open-source pytorch code for crowd counting.
+\newblock {\em arXiv preprint arXiv:1907.02724}, 2019.
+
+\bibitem{he2016deep}
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+\newblock Deep residual learning for image recognition.
+\newblock In {\em Proceedings of the IEEE conference on computer vision and
+  pattern recognition}, pages 770--778, 2016.
+
+\bibitem{wang2019learning}
+Qi Wang, Junyu Gao, Wei Lin, and Yuan Yuan.
+\newblock Learning from synthetic data for crowd counting in the wild.
+\newblock In {\em Proceedings of IEEE Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, 2019.
+
+\bibitem{zhang2016single}
+Yingying Zhang, Desen Zhou, Siqin Chen, Shenghua Gao, and Yi Ma.
+\newblock Single-image crowd counting via multi-column convolutional neural
+  network.
+\newblock In {\em Proceedings of the IEEE conference on computer vision and
+  pattern recognition}, pages 589--597, 2016.
+
+\end{thebibliography}

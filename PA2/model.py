@@ -7,7 +7,22 @@ from pytorch_metric_learning import miners, losses
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 
-class PoseRAC(pl.LightningModule):
+class PoseRAC(nn.Module):
+    def __init__(self, dim, heads, enc_layer, num_classes):
+        super().__init__()
+        self.transformer_encoder = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=dim, nhead=heads),
+                                                         num_layers=enc_layer)
+        self.fc1 = nn.Linear(dim, num_classes)
+
+    def forward(self, x):
+        x = x.view(-1, 1, self.dim)
+        x = self.transformer_encoder(x)
+        x = x.view(-1, self.dim)
+        x = self.fc1(x)
+        return x
+
+
+class _PoseRAC(pl.LightningModule):
 
     def __init__(self, train_x, train_y, valid_x, valid_y, dim, heads, enc_layer, learning_rate, seed, num_classes, alpha):
         super().__init__()

@@ -176,10 +176,17 @@ def main(args):
     num_classes = len(index2action)
     print(index2action)
 
-    model = PoseRAC(None, None, None, None, dim=config['PoseRAC']['dim'], heads=config['PoseRAC']['heads'],
-                    enc_layer=config['PoseRAC']['enc_layer'], learning_rate=config['PoseRAC']['learning_rate'],
-                    seed=config['PoseRAC']['seed'], num_classes=num_classes, alpha=config['PoseRAC']['alpha'])
+    # model = PoseRAC(None, None, None, None, dim=config['PoseRAC']['dim'], heads=config['PoseRAC']['heads'],
+    #                 enc_layer=config['PoseRAC']['enc_layer'], learning_rate=config['PoseRAC']['learning_rate'],
+    #                 seed=config['PoseRAC']['seed'], num_classes=num_classes, alpha=config['PoseRAC']['alpha'])
     # model.load_from_checkpoint(weight_path)
+
+    model = PoseRAC(num_classes=num_classes,
+                    dim=config['PoseRAC']['dim'],
+                    heads=config['PoseRAC']['heads'],
+                    enc_layer=config['PoseRAC']['enc_layer'],
+                    alpha=config['PoseRAC']['alpha'])
+
     weight_path = 'best_weights_PoseRAC.pth'
     new_weights = torch.load(weight_path, map_location='cpu')
     model.load_state_dict(new_weights)

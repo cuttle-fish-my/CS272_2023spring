@@ -1,30 +1,46 @@
 import pytorch_lightning as pl
-from torch import nn
 import torch
-from torch.utils.data import TensorDataset, DataLoader
 from pytorch_metric_learning import miners, losses
+from torch import nn
+from torch.utils.data import TensorDataset, DataLoader
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 class PoseRAC(nn.Module):
-    def __init__(self, dim, heads, enc_layer, num_classes):
+    def __init__(self, dim, heads, enc_layer, num_classes, alpha):
         super().__init__()
+        self.dim = dim
         self.transformer_encoder = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=dim, nhead=heads),
                                                          num_layers=enc_layer)
         self.fc1 = nn.Linear(dim, num_classes)
+        self.miner = miners.MultiSimilarityMiner()
+        self.TripletLoss = losses.TripletMarginLoss()
+        self.BCELoss = nn.BCELoss()
+        self.alpha = alpha
 
-    def forward(self, x):
+    def forward(self, x, y=None):
         x = x.view(-1, 1, self.dim)
         x = self.transformer_encoder(x)
-        x = x.view(-1, self.dim)
-        x = self.fc1(x)
-        return x
+        embedding = x.view(-1, self.dim)
+        y_hat = self.fc1(embedding)
+        if y is None:
+            return y_hat
+
+        y_pred = torch.sigmoid(y_hat)
+
+        hard_pairs = self.miner(embedding, torch.argmax(y.float(), dim=1))
+        triplet_loss = -self.TripletLoss(embedding, torch.argmax(y.float(), dim=1), hard_pairs)
+        bce_loss = self.BCELoss(y_pred, y.float())
+        loss = self.alpha * triplet_loss + (1 - self.alpha) * bce_loss
+
+        return y_hat, {"loss": loss, "triplet_loss": triplet_loss, "bce_loss": bce_loss}
 
 
 class _PoseRAC(pl.LightningModule):
 
-    def __init__(self, train_x, train_y, valid_x, valid_y, dim, heads, enc_layer, learning_rate, seed, num_classes, alpha):
+    def __init__(self, train_x, train_y, valid_x, valid_y, dim, heads, enc_layer, learning_rate, seed, num_classes,
+                 alpha):
         super().__init__()
         self.save_hyperparameters()
 
@@ -59,7 +75,7 @@ class _PoseRAC(pl.LightningModule):
         x = self.transformer_encoder(x)
         embedding = x.view(-1, self.dim)
 
-        hard_pairs = self.miner(embedding, torch.argmax(y.float(),dim=1))
+        hard_pairs = self.miner(embedding, torch.argmax(y.float(), dim=1))
         loss_metric = -self.loss_func(embedding, torch.argmax(y.float(), dim=1), hard_pairs)
 
         y_hat = self.fc1(embedding)
@@ -114,6 +130,7 @@ class Action_trigger(object):
         Trigger the salient action 1 or 2 during inference.
         This is used to calculate the repetitive count.
     """
+
     def __init__(self, action_name, enter_threshold=0.8, exit_threshold=0.4):
         self._action_name = action_name
 

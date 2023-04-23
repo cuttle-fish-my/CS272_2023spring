@@ -1,18 +1,17 @@
 import argparse
 import csv
 import os
-import platform
+import pathlib
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pytorch_lightning as pl
 import torch
 import yaml
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import DataLoader
 
+from PoseDataset import PoseDataset
 from model import PoseRAC
 
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -21,10 +20,11 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 def dev():
     if torch.cuda.is_available():
         return torch.device('cuda')
-    elif "macOS" in platform.platform():
-        return torch.device('mps')
+    # elif "macOS" in platform.platform():
+    #     return torch.device('mps')
     else:
         return torch.device('cpu')
+
 
 # Normalization to improve training robustness.
 def normalize_landmarks(all_landmarks):
@@ -107,67 +107,73 @@ def main(args):
     train_landmarks, train_labels = csv2data(train_csv, action2index, num_classes)
     valid_landmarks, valid_labels = csv2data(train_csv, action2index, num_classes)
 
-    train_dataset = TensorDataset(torch.from_numpy(train_landmarks).float(), torch.from_numpy(train_labels).float())
-    valid_dataset = TensorDataset(torch.from_numpy(valid_landmarks).float(), torch.from_numpy(valid_labels).float())
+    train_dataset = PoseDataset(torch.from_numpy(train_landmarks).float(), torch.from_numpy(train_labels).float())
+    valid_dataset = PoseDataset(torch.from_numpy(valid_landmarks).float(), torch.from_numpy(valid_labels).float())
 
-    train_loader = DataLoader(train_dataset, batch_size=config['PoseRAC']['batch_size'], shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=config['PoseRAC']['batch_size'], shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=config['dataset']['batch_size'], shuffle=True)
+    valid_loader = DataLoader(valid_dataset, batch_size=config['dataset']['batch_size'], shuffle=False)
+
     model = PoseRAC(dim=config['PoseRAC']['dim'],
                     heads=config['PoseRAC']['heads'],
                     enc_layer=config['PoseRAC']['enc_layer'],
-                    num_classes=num_classes)
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['PoseRAC']['learning_rate'])
+                    num_classes=num_classes,
+                    alpha=config['PoseRAC']['alpha'])
 
-    for epoch in range(config['PoseRAC']['epochs']):
+    optimizer = torch.optim.Adam(model.parameters(), lr=config['PoseRAC']['learning_rate'])
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.75, patience=6, verbose=1,
+                                                           mode='min', cooldown=0, min_lr=10e-7)
+    model.to(dev())
+
+    save_path = os.path.join(config['save_dir'],
+                             f"head_{config['PoseRAC']['heads']}_layer_{config['PoseRAC']['enc_layer']}")
+
+    pathlib.Path(save_path).mkdir(parents=True, exist_ok=True)
+    yaml.dump(config, open(os.path.join(save_path, 'config.yaml'), 'w'))
+
+    plt.Figure(figsize=(10, 10))
+    train_loss_list = []
+    valid_loss_list = []
+    best_loss = 1e8
+
+    for epoch in range(config['trainer']['max_epochs']):
         model.train()
+        avg_train_loss = 0
         for i, (landmarks, labels) in enumerate(train_loader):
-            landmarks = landmarks.to(device)
-            labels = labels.to(device)
+            landmarks = landmarks.to(dev())
+            labels = labels.to(dev())
+            _, loss = model(landmarks, labels)
+            loss = loss["loss"]
             optimizer.zero_grad()
-            output = model(landmarks)
-            loss = F.binary_cross_entropy(output, labels)
             loss.backward()
             optimizer.step()
+            avg_train_loss += loss.item()
+        scheduler.step(avg_train_loss)
+        avg_train_loss /= len(train_loader)
+        train_loss_list.append(avg_train_loss)
 
+        avg_val_loss = 0
         model.eval()
         with torch.no_grad():
             for i, (landmarks, labels) in enumerate(valid_loader):
-                landmarks = landmarks.to(device)
-                labels = labels.to(device)
-                output = model(landmarks)
-                loss = F.binary_cross_entropy(output, labels)
-                print("epoch: {}, loss: {}".format(epoch, loss))
+                landmarks = landmarks.to(dev())
+                labels = labels.to(dev())
+                _, loss = model(landmarks, labels)
+                loss = loss["bce_loss"]
+                avg_val_loss += loss.item()
+            avg_val_loss /= len(valid_loader)
+            valid_loss_list.append(avg_val_loss)
+        print("epoch: {}, train_loss: {}, valid_loss: {}".format(epoch, avg_train_loss, avg_val_loss))
+        scheduler.step(avg_val_loss)
+        if avg_val_loss < best_loss:
+            best_loss = avg_val_loss
+            torch.save(model.state_dict(), os.path.join(save_path, 'best_model.pth'))
+        plt.clf()
+        plt.plot(train_loss_list, label='train_loss')
+        plt.plot(valid_loss_list, label='valid_loss')
+        plt.legend()
+        plt.savefig(os.path.join(save_path, 'progress.png'))
 
-    # early_stop_callback = EarlyStopping(
-    #     monitor='val_loss',
-    #     min_delta=0.00,
-    #     patience=20,
-    #     verbose=True,
-    #     mode='min',
-    # )
-    # ckpt_callback = ModelCheckpoint(mode="min",
-    #                                 monitor="val_loss",
-    #                                 dirpath='./saved_weights',
-    #                                 filename='{epoch}-{val_loss:.2f}',
-    #                                 every_n_epochs=1)
-
-    # model = PoseRAC(train_landmarks, train_labels, valid_landmarks, valid_labels, dim=config['PoseRAC']['dim'],
-    #                 heads=config['PoseRAC']['heads'], enc_layer=config['PoseRAC']['enc_layer'],
-    #                 learning_rate=config['PoseRAC']['learning_rate'], seed=config['PoseRAC']['seed'],
-    #                 num_classes=num_classes, alpha=config['PoseRAC']['alpha'])
-
-    # trainer = pl.Trainer(callbacks=[early_stop_callback, ckpt_callback], max_epochs=config['trainer']['max_epochs'],
-    #                      auto_lr_find=config['trainer']['auto_lr_find'], accelerator=config['trainer']['accelerator'],
-    #                      devices=config['trainer']['devices'], strategy='ddp')
-
-    # trainer.tune(model)
-    # print('Learning rate:', model.learning_rate)
-    # trainer.fit(model)
-    #
-    # print(f'best loss: {ckpt_callback.best_model_score.item():.5g}')
-
-    weights = model.state_dict()
-    torch.save(weights, config['save_ckpt_path'])
+    torch.save(model.state_dict(), os.path.join(save_path, "final.pth"))
 
     current_time = time.time()
     print('time: ' + str(current_time - old_time) + 's')

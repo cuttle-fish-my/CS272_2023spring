@@ -1,11 +1,24 @@
-import pandas as pd
-import numpy as np
-import os
-import torch.onnx
-from model import PoseRAC, Action_trigger
 import argparse
+import os
+import pathlib
+
+import numpy as np
+import pandas as pd
+import torch.onnx
 import yaml
+
+from model import PoseRAC, Action_trigger
+
 torch.multiprocessing.set_sharing_strategy('file_system')
+
+
+def dev():
+    if torch.cuda.is_available():
+        return torch.device('cuda')
+    # elif "macOS" in platform.platform():
+    #     return torch.device('mps')
+    else:
+        return torch.device('cpu')
 
 
 def main(args):
@@ -35,21 +48,33 @@ def main(args):
     label_filename = os.path.join(label_dir, 'test.csv')
     df = pd.read_csv(label_filename)
 
-    model = PoseRAC(None, None, None, None, dim=config['PoseRAC']['dim'], heads=config['PoseRAC']['heads'],
-                    enc_layer=config['PoseRAC']['enc_layer'], learning_rate=config['PoseRAC']['learning_rate'],
-                    seed=config['PoseRAC']['seed'], num_classes=num_classes, alpha=config['PoseRAC']['alpha'])
+    # model = PoseRAC(None, None, None, None, dim=config['PoseRAC']['dim'], heads=config['PoseRAC']['heads'],
+    #                 enc_layer=config['PoseRAC']['enc_layer'], learning_rate=config['PoseRAC']['learning_rate'],
+    #                 seed=config['PoseRAC']['seed'], num_classes=num_classes, alpha=config['PoseRAC']['alpha'])
+
+    model = PoseRAC(dim=config['PoseRAC']['dim'],
+                    heads=config['PoseRAC']['heads'],
+                    enc_layer=config['PoseRAC']['enc_layer'],
+                    num_classes=num_classes,
+                    alpha=config['PoseRAC']['alpha'])
+
     assert args.ckpt is not None, 'checkpoint file does not exist'
     weight_path = args.ckpt
     new_weights = torch.load(weight_path, map_location='cpu')
     model.load_state_dict(new_weights)
     model.eval()
-    model.cuda()
-
+    # model.cuda()
+    model.to(dev())
     testMAE = []
     testOBO = []
     enter_threshold = config['Action_trigger']['enter_threshold']
     exit_threshold = config['Action_trigger']['exit_threshold']
     momentum = config['Action_trigger']['momentum']
+
+    save_path = os.path.join(config['save_dir'],
+                             f"head_{config['PoseRAC']['heads']}_layer_{config['PoseRAC']['enc_layer']}")
+
+    pathlib.Path(save_path).mkdir(parents=True, exist_ok=True)
 
     for i in range(0, len(df)):
         filename = df.loc[i, 'name']
@@ -61,8 +86,8 @@ def main(args):
 
         poses = np.load(test_pose_save_path).reshape(-1, config['PoseRAC']['all_key_points'])
         poses_tensor = torch.from_numpy(poses).float()
-        all_output = torch.sigmoid(model(poses_tensor.cuda()))
-        # all_output = model(poses_tensor.cuda())
+        # all_output = torch.sigmoid(model(poses_tensor.cuda()))
+        all_output = torch.sigmoid(model(poses_tensor.to(dev())))
 
         # action_counts = [0] * num_classes
         # all_classes = torch.argmax(all_output, dim=1).view(-1, 1)
@@ -133,6 +158,8 @@ def main(args):
         testOBO.append(best_obo)
 
     print("MAE:{0},OBO:{1}".format(np.mean(testMAE), np.mean(testOBO)))
+    with open(os.path.join(save_path, 'test_result.txt'), 'w') as f:
+        f.write("MAE:{0},OBO:{1}".format(np.mean(testMAE), np.mean(testOBO)))
 
 
 if __name__ == "__main__":

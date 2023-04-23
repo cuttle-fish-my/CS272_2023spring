@@ -4,14 +4,15 @@ test_split: ['test']
 dataset: {
   dataset_root_dir: './RepCount_pose',
   csv_label_path: 'all_action.csv',
+  batch_size: 16,
 }
 PoseRAC: {
   seed: 42,
   dim: 99,
-  heads: 9,
-  enc_layer: 6,
+  heads: 9, # default 9
+  enc_layer: 6, # default 6
   all_key_points: 99,
-  learning_rate: 0.001,
+  learning_rate: 0.00025,
   alpha: 0.01
 }
 Action_trigger: {
@@ -20,9 +21,9 @@ Action_trigger: {
   momentum: 0.4
 }
 trainer: {
-  max_epochs: 20,
+  max_epochs: 100, # default 20
   auto_lr_find: True,
   accelerator: 'cpu',
   devices: 1
 }
-save_ckpt_path: 'new_weights.pth'
+save_dir: 'saved_models'

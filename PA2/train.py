@@ -94,7 +94,7 @@ def main(args):
     if args.heads != -1:
         config['PoseRAC']['heads'] = args.heads
     if args.enc_layer != -1:
-        config['PoseRAC']['enc_layer'] = args.dim
+        config['PoseRAC']['enc_layer'] = args.enc_layer
     if args.accelerator is not None:
         config['trainer']['accelerator'] = args.accelerator
 

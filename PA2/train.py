@@ -98,7 +98,6 @@ def main(args):
     if args.accelerator is not None:
         config['trainer']['accelerator'] = args.accelerator
 
-
     train_csv = os.path.join(root_dir, 'annotation_pose', 'train.csv')
 
     label_pd = pd.read_csv(csv_label_path)

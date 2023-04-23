@@ -21,7 +21,7 @@ Action_trigger: {
   momentum: 0.4
 }
 trainer: {
-  max_epochs: 100, # default 20
+  max_epochs: 50, # default 20
   auto_lr_find: True,
   accelerator: 'cpu',
   devices: 1

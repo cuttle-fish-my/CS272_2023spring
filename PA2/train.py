@@ -91,6 +91,14 @@ def main(args):
     csv_label_path = config['dataset']['csv_label_path']
     root_dir = config['dataset']['dataset_root_dir']
 
+    if args.heads != -1:
+        config['PoseRAC']['heads'] = args.heads
+    if args.enc_layer != -1:
+        config['PoseRAC']['enc_layer'] = args.dim
+    if args.accelerator is not None:
+        config['trainer']['accelerator'] = args.accelerator
+
+
     train_csv = os.path.join(root_dir, 'annotation_pose', 'train.csv')
 
     label_pd = pd.read_csv(csv_label_path)
@@ -183,5 +191,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Evaluate our PoseRAC')
     parser.add_argument('--config', type=str, metavar='DIR',
                         help='path to a config file')
+    parser.add_argument('--heads', type=int, default=-1)
+    parser.add_argument('--enc_layer', type=int, default=-1)
+    parser.add_argument('--accelerator', type=str, default=None)
     args = parser.parse_args()
     main(args)

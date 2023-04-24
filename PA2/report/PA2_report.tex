@@ -63,7 +63,8 @@
         The results show that the performance of PoseRAC barely improves when the number of encoder layers increases from 1 to 8,
         but the model will crush when the number of encoder layers is larger than 8 in my training setting.
         Besides, the performance of PoseRAC is not sensitive to the number of heads in the multi-head attention module.
-
+        Finally, I replaced the triplet margin loss with {\bf contrastive loss} and {\bf circle loss}, the results show that
+        circle loss significantly boosts the model within 20 epoch, the evaluation metrics MAE and OBO improved from 0.2540 and 0.5395 to 0.2083 and 0.6053.
     \end{abstract}
 
 %%%%%%%%% BODY TEXT

@@ -35,8 +35,6 @@ class PoseRAC(nn.Module):
         loss = self.alpha * triplet_loss + (1 - self.alpha) * bce_loss
 
         return y_hat, {"loss": loss, "triplet_loss": triplet_loss, "bce_loss": bce_loss}
-
-
 class _PoseRAC(pl.LightningModule):
 
     def __init__(self, train_x, train_y, valid_x, valid_y, dim, heads, enc_layer, learning_rate, seed, num_classes,

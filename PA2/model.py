@@ -38,7 +38,7 @@ class PoseRAC(nn.Module):
         bce_loss = self.BCELoss(y_pred, y.float())
         loss = self.alpha * triplet_loss + (1 - self.alpha) * bce_loss
 
-        return y_hat, {"loss": loss, "triplet_loss": triplet_loss, "bce_loss": bce_loss, 'circle_loss': circle_loss}
+        return y_hat, {"loss": loss, "bce_loss": bce_loss}
 
 
 class _PoseRAC(pl.LightningModule):

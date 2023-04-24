@@ -187,7 +187,7 @@ def main(args):
                     enc_layer=config['PoseRAC']['enc_layer'],
                     alpha=config['PoseRAC']['alpha'])
 
-    weight_path = 'best_weights_PoseRAC.pth'
+    weight_path = args.ckpt
     new_weights = torch.load(weight_path, map_location='cpu')
     model.load_state_dict(new_weights)
     model.eval()

@@ -16,6 +16,8 @@ class PoseRAC(nn.Module):
         self.fc1 = nn.Linear(dim, num_classes)
         self.miner = miners.MultiSimilarityMiner()
         self.TripletLoss = losses.TripletMarginLoss()
+        self.CircleLoss = losses.circle_loss.CircleLoss()
+        self.ContrastiveLoss = losses.contrastive_loss.ContrastiveLoss()
         self.BCELoss = nn.BCELoss()
         self.alpha = alpha
 
@@ -31,10 +33,14 @@ class PoseRAC(nn.Module):
 
         hard_pairs = self.miner(embedding, torch.argmax(y.float(), dim=1))
         triplet_loss = -self.TripletLoss(embedding, torch.argmax(y.float(), dim=1), hard_pairs)
+        circle_loss = self.CircleLoss(embedding, torch.argmax(y.float(), dim=1), hard_pairs)
+        contrastive_loss = -self.ContrastiveLoss(embedding, torch.argmax(y.float(), dim=1), hard_pairs)
         bce_loss = self.BCELoss(y_pred, y.float())
         loss = self.alpha * triplet_loss + (1 - self.alpha) * bce_loss
 
-        return y_hat, {"loss": loss, "triplet_loss": triplet_loss, "bce_loss": bce_loss}
+        return y_hat, {"loss": loss, "triplet_loss": triplet_loss, "bce_loss": bce_loss, 'circle_loss': circle_loss}
+
+
 class _PoseRAC(pl.LightningModule):
 
     def __init__(self, train_x, train_y, valid_x, valid_y, dim, heads, enc_layer, learning_rate, seed, num_classes,

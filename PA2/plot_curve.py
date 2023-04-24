@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 
-heads = [1, 3, 9, 11]
+heads = [1, 3, 9, 11, 33]
 layers = [1, 2, 4, 6, 8, 10, 12]
 
 plt.figure(figsize=(20, 10))

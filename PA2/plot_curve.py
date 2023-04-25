@@ -15,6 +15,8 @@ for head in heads:
             obo = float(content[1].split(":")[1])
             MAE.append(mae)
             OBO.append(obo)
+
+    print(f'heads:{heads}\n MAE: {MAE}\n OBO: {OBO}')
     plt.subplot(1, 2, 1)
     plt.plot(layers, MAE, label=f'num_head={head}')
     plt.legend()

@@ -12,7 +12,7 @@ PoseRAC: {
   heads: 9, # default 9
   enc_layer: 6, # default 6
   all_key_points: 99,
-  learning_rate: 0.000025, # default 0.00025
+  learning_rate: 0.00025, # default 0.00025
   alpha: 0.01
 }
 Action_trigger: {

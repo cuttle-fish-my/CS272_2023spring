@@ -16,3 +16,4 @@ __pycache__
 *.gz
 
 /PA2/RepCount_pose
+/PA2/saved_models/

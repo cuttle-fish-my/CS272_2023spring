@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 heads = [1, 3, 9, 11, 33]
 layers = [1, 2, 4, 6, 8, 10, 12]
 
-plt.figure(figsize=(20, 10))
+plt.figure(figsize=(10, 20))
 
 for head in heads:
     MAE = []
@@ -16,13 +16,13 @@ for head in heads:
             MAE.append(mae)
             OBO.append(obo)
 
-    print(f'heads:{heads}\n MAE: {MAE}\n OBO: {OBO}')
-    plt.subplot(1, 2, 1)
+    print(f'heads:{head}\n MAE: {MAE}\n OBO: {OBO}')
+    plt.subplot(2, 1, 1)
     plt.plot(layers, MAE, label=f'num_head={head}')
     plt.legend()
     plt.title("MAE")
     plt.xlim(0, 12)
-    plt.subplot(1, 2, 2)
+    plt.subplot(2, 1, 2)
     plt.plot(layers, OBO, label=f'num_head={head}')
     plt.legend()
     plt.title("OBO")

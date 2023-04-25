@@ -141,21 +141,26 @@
     Moreover, in order to guarantee the convergence of models, I set the max training epoch from 20 to 50 and test the models
     which leads to the lowest validation loss.
 
-    The experiment results are shown in
-
+    The experiment results are shown in~\ref{tab:num_layers_num_heads} and the corresponding curve is shown in~\ref{fig:num_layers_num_heads}.
     \begin{table}
         \centering
         \begin{tabular}[H]{c c c c c c c c}
-            heads/layers & 1 & 2 & 4 & 6 & 8 & 10 & 12\\
-            1 & \\
-            3 & \\
-            9 & \\
-            11 & \\
-            33 & \\
+            heads/layers & 1 & 2 & 4 & 6 & 8 & 10 & 12 \\
+            1 & & & & & & &\\
+            3 & & & & & & &\\
+            9 & & & & & & &\\
+            11 & & & & & & &\\
+            33 & & & & & & &\\
         \end{tabular}
         \label{tab:num_layers_num_heads}
     \end{table}
 
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.6\textwidth]{img/MAE&OBO_curve}
+        \caption{MAE and OBO curve of different number of encoder layers and number of heads.}
+        \label{fig:}
+    \end{figure}
 
 %%%%%%%%% REFERENCES
     {\small
